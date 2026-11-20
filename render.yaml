@@ -1,0 +1,227 @@
+# Render Blueprint — LeadCockpit
+#
+# One web service, built from the repo's production Dockerfile. The database is
+# an EXTERNAL Neon Postgres project ("Lead Cockpit", AWS ap-southeast-1), not a
+# Render Postgres instance — so DATABASE_URL is set by hand in the dashboard
+# rather than wired from a `databases:` block here.
+#
+# Region is singapore to sit next to that Neon project. Cross-region would add
+# a round trip to every query, and this app is query-chatty.
+#
+# Why docker and not the node runtime: next.config.ts sets `output: "standalone"`,
+# and `next start` refuses to run against a standalone build. The Dockerfile
+# already assembles the standalone bundle correctly — server.js, .next/static,
+# public/, prisma/migrations, and the runtime-read agents/ and policies/ trees
+# that Next's tracer cannot see because they are .md files opened via fs.
+#
+# NOT deployed here (both are paid-plan features on Render, and the app runs
+# without them — queued jobs just wait):
+#   - the `worker` role   (scripts/worker-entrypoint.ts)
+#   - the `scheduler` role (scripts/scheduler-entrypoint.ts)
+# Both are in docker-compose.yml and run from this same image when needed.
+
+services:
+  - type: web
+    name: lead-cockpit
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    branch: main
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health
+
+    envVars:
+      # --- Substrate ------------------------------------------------------
+      # "prisma" is the only value that selects Postgres; anything else falls
+      # back to the JSON store (src/repositories/index.ts:9), which on a free
+      # instance would be wiped on every restart.
+      - key: PERSISTENCE_PROVIDER
+        value: prisma
+
+      # Neon connection string. Set in the dashboard — it carries a password,
+      # so it does not belong in a file that lives in git.
+      # Use Neon's POOLED host (-pooler) — a free Render instance opens more
+      # connections than a Neon direct endpoint is happy to hold.
+      - key: DATABASE_URL
+        sync: false
+
+      # --- Auth -----------------------------------------------------------
+      # Real sessions, real password checks. Requires an owner account to
+      # exist before first login: `npm run bootstrap:owner`.
+      - key: AUTH_MODE
+        value: production
+
+      # >= 32 chars, signs session cookies. Generated once by Render and then
+      # held constant — rotating it logs every session out.
+      - key: AUTH_SESSION_SECRET
+        generateValue: true
+
+      # >= 16 chars. AES-GCM master key for stored integration credentials,
+      # SHA-256'd into a 256-bit key (src/lib/credential-security.ts:64).
+      # Changing this makes every already-encrypted secret undecryptable.
+      - key: ENCRYPTION_KEY
+        generateValue: true
+
+      # Shared secret for server-to-server API calls.
+      - key: API_SHARED_SECRET
+        generateValue: true
+
+      # HMAC secret for inbound provider webhooks.
+      - key: INBOUND_WEBHOOK_SECRET
+        generateValue: true
+
+      # --- Runtime --------------------------------------------------------
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      # The Dockerfile EXPOSEs 3000 and server.js reads PORT.
+      - key: PORT
+        value: "3000"
+
+      # Absolute public origin. Used to build webhook callback URLs and any
+      # emailed link, so it must be the real https:// host, not a path.
+      # Set in the dashboard once Render has assigned the .onrender.com name.
+      - key: BASE_URL
+        sync: false
+
+      # --- Rate limiting --------------------------------------------------
+      # Empty = in-process Map. Correct for a single free instance; switch to
+      # "redis" (and set REDIS_URL) only once more than one instance runs,
+      # because a per-process counter stops being a real limit at that point.
+      - key: RATE_LIMIT_BACKEND
+        value: ""
+
+      # Single-operator mode. The preset table is sized for a shared
+      # deployment — 50 product-research runs/day, 20 crawls/hour — which on a
+      # one-person instance is an interruption rather than a safety net, and a
+      # 24-hour window means one trip locks the feature until tomorrow.
+      # This flattens every non-auth preset to 10,000/minute: high enough never
+      # to trip, and a 60-second window so a bug costs a minute, not a day.
+      # Brute-force guards (login, signup, admin login, password-reset and
+      # verification email) are deliberately NOT raised — nobody signs in ten
+      # thousand times a day, so exempting them costs the operator nothing.
+      # Set RATE_LIMIT_SINGLE_USER to "0" before opening this up to real users.
+      - key: RATE_LIMIT_SINGLE_USER
+        value: "1"
+      - key: RATE_LIMIT_SINGLE_USER_PER_MINUTE
+        value: "10000"
+
+      # The edge limiter is a separate, coarser gate in front of everything
+      # (per-IP and per-workspace request counts). Its shared-deployment
+      # defaults of 300/600 would throttle a single operator clicking through
+      # screens long before the per-action presets ever came into play.
+      - key: EDGE_RATE_LIMIT_PER_IP
+        value: "10000"
+      - key: EDGE_RATE_LIMIT_PER_WORKSPACE
+        value: "10000"
+
+      # --- Model providers ------------------------------------------------
+      # Every AI surface reads one of these. Leave a provider unset and its
+      # features degrade rather than crash. Set the ones you actually use.
+      - key: PLATFORM_OPENAI_API_KEY
+        sync: false
+      - key: PLATFORM_DEEPSEEK_API_KEY
+        sync: false
+      - key: PLATFORM_ANTHROPIC_API_KEY
+        sync: false
+      - key: PLATFORM_GEMINI_API_KEY
+        sync: false
+      - key: PLATFORM_SERPAPI_API_KEY
+        sync: false
+
+      # --- WhatsApp Cloud (optional) --------------------------------------
+      - key: WHATSAPP_CLOUD_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_CLOUD_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_CLOUD_BUSINESS_ACCOUNT_ID
+        sync: false
+      - key: WHATSAPP_WEBHOOK_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+
+  # ---------------------------------------------------------------------------
+  # Demo deployment.
+  #
+  # Same image, same branch, different posture: AUTH_MODE=demo, so the app
+  # serves the one-click demo workspace instead of asking for credentials. This
+  # is what a customer is shown; the production service above holds real data
+  # and is never the thing being demonstrated.
+  #
+  # 2026-09-27 (CEO decision): it runs on the BUILT-IN SAMPLE COMPANY, not a
+  # database. Its old database (a Neon branch) was archived by Neon for being
+  # unused, and Render allows one free database per account, which production
+  # uses. The Docker build generates the sample company (scripts/seed-demo.ts)
+  # into the image (.leadgen-data itself is still never copied in); on start,
+  # docker-entrypoint.sh copies it into LEADGEN_DATA_DIR (default
+  # /tmp/leadcockpit-demo). The instance disk is temporary, so every restart or
+  # deploy gives the demo a fresh sample company — which suits a demo. Demo
+  # data and real customer data still never share storage.
+  #
+  # AI_USAGE_CAPS=on: this site is public with no login, and AI caps are off by
+  # default during development, so the demo keeps its daily AI limits on.
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: lead-cockpit-demo
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    branch: main
+    autoDeployTrigger: commit
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: PERSISTENCE_PROVIDER
+        value: json
+
+      # Public, no login: keep the daily AI limits on here.
+      - key: AI_USAGE_CAPS
+        value: "on"
+
+      # The whole point of this service. Demo mode serves the demo workspace
+      # with no login, and keeps the outbound safety boundaries on.
+      - key: AUTH_MODE
+        value: demo
+
+      # Demo mode falls back to a deterministic throwaway key when unset, which
+      # is explicitly not secure. Give it a real one anyway — costs nothing and
+      # means demo-entered credentials are encrypted like anywhere else.
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: AUTH_SESSION_SECRET
+        generateValue: true
+
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: PORT
+        value: "3000"
+      - key: BASE_URL
+        value: https://lead-cockpit-demo.onrender.com
+
+      # A demo that stalls on a rate limit mid-presentation is worse than no
+      # demo, and there is nothing here worth protecting from volume.
+      - key: RATE_LIMIT_BACKEND
+        value: ""
+      - key: RATE_LIMIT_SINGLE_USER
+        value: "1"
+      - key: RATE_LIMIT_SINGLE_USER_PER_MINUTE
+        value: "10000"
+      - key: EDGE_RATE_LIMIT_PER_IP
+        value: "10000"
+      - key: EDGE_RATE_LIMIT_PER_WORKSPACE
+        value: "10000"
+
+      # Without a provider key the AI surfaces fall back to canned responses,
+      # which is precisely what a demo must not do.
+      - key: PLATFORM_DEEPSEEK_API_KEY
+        sync: false
+      - key: PLATFORM_OPENAI_API_KEY
+        sync: false
+      - key: PLATFORM_SERPAPI_API_KEY
+        sync: false

@@ -1,0 +1,47 @@
+// Render actual paid-service receipts, without making additional paid browser calls.
+import {test,expect} from '@playwright/test';
+import fs from 'node:fs';
+import {loginDemo} from './helpers/login';
+import {restoreDemoData,waitForServerQuiescent} from './helpers/demo-data-snapshot';
+import {E2E_DATA_FILE} from './helpers/data-dir';
+test('actual grounded AI answer and unsent draft reopen in the Assistant',async({page,request})=>{
+ restoreDemoData();await waitForServerQuiescent();
+ const factProof=JSON.parse(fs.readFileSync('docs/system-workflow/readiness-proof/week1-full-pipeline.json','utf8'));
+ const draftProof=JSON.parse(fs.readFileSync('docs/system-workflow/readiness-proof/week1-full-pipeline-draft-recheck.json','utf8'));
+ expect(factProof.status).toBe('PASS');expect(draftProof.status).toBe('PASS');
+ const conversation=await (await request.post('/api/copilot/conversations',{headers:{cookie:'lc_demo=1'},data:{}})).json();
+ const data=JSON.parse(fs.readFileSync(E2E_DATA_FILE,'utf8'));
+ const selected=[factProof.messages.find((m:{role:string,text:string})=>m.role==='copilot'&&m.text.includes('100 metres')),draftProof.messages.find((m:{kind:string})=>m.kind==='copilot_draft')];
+ expect(selected.every(Boolean)).toBe(true);
+ data.ownerCopilotMessages??=[];
+ data.ownerCopilotMessages.push(...selected.map(m=>({...m,workspaceId:conversation.workspaceId,conversationId:conversation.id})));
+ data.messageTemplates.push({...draftProof.template,workspaceId:conversation.workspaceId});
+ fs.writeFileSync(E2E_DATA_FILE,JSON.stringify(data));
+ await loginDemo(page);await page.getByRole('button',{name:'Assistant',exact:true}).click();
+ const region=page.getByRole('region',{name:'Conversation',exact:true});
+ await expect(region).toContainText('100 metres');await expect(region).toContainText('DRAFT (not sent to the customer)');
+ await expect(region).toContainText(/samples.*available|available.*samples/i);
+ await page.reload({waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Assistant',exact:true}).click();
+ await expect(region).toContainText('100 metres');await expect(region).toContainText('DRAFT (not sent to the customer)');
+ await page.screenshot({path:'docs/system-workflow/readiness-proof/week1-real-output-browser.png'});
+});
+test('setup answer confirmation saves the proposed fact once and resumes the original question',async({page,request})=>{
+ restoreDemoData();await waitForServerQuiescent();const headers={cookie:'lc_demo=1'};
+ const list=await (await request.get('/api/knowledge/question-answers',{headers})).json();
+ const target=list.find((a:{questionKey:string})=>a.questionKey==='legal_company_name');expect(target).toBeTruthy();
+ const asked=list.find((a:{id:string})=>a.id!==target.id);expect(asked).toBeTruthy();
+ const conversation=await (await request.post('/api/copilot/conversations',{headers,data:{}})).json();
+ const data=JSON.parse(fs.readFileSync(E2E_DATA_FILE,'utf8'));data.ownerCopilotMessages??=[];
+ const id='week1-setup-proposal';
+ data.ownerCopilotMessages.push({id,workspaceId:conversation.workspaceId,conversationId:conversation.id,role:'copilot',kind:'copilot_question',tier:'T1',language:'en',text:'That answers your company name. Shall I save it there?',createdAt:new Date().toISOString(),pendingAction:{intent:'setup_answer_confirmation',entityId:`${target.domainKey}/${target.questionKey}`,entityType:'knowledge_answer_confirm',proposal:{answer:'Pilot Yarn Supplies',ownerWords:'Pilot Yarn Supplies',askedMarker:`${asked.domainKey}/${asked.questionKey}`}}});
+ fs.writeFileSync(E2E_DATA_FILE,JSON.stringify(data));
+ await loginDemo(page);await page.getByRole('button',{name:'Assistant',exact:true}).click();
+ const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/copilot/setup-answer');
+ await page.getByRole('button',{name:'Save it there',exact:true}).click();expect((await response).ok()).toBe(true);
+ const region=page.getByRole('region',{name:'Conversation',exact:true});await expect(region).toContainText('Saved under');await expect(region).toContainText('Back to my question');
+ const saved=(await (await request.get('/api/knowledge/question-answers',{headers})).json()).find((a:{id:string})=>a.id===target.id);
+ expect(saved.answer).toBe('Pilot Yarn Supplies');expect(saved.isUserApproved).toBe(true);
+ const repeated=await request.post('/api/copilot/setup-answer',{headers,data:{conversationId:conversation.id,messageId:id,save:true}});expect(repeated.status()).toBe(409);
+ await page.reload({waitUntil:'domcontentloaded'});await page.getByRole('button',{name:'Assistant',exact:true}).click();await expect(region).toContainText('Pilot Yarn Supplies');await expect(page.getByRole('button',{name:'Save it there',exact:true})).toHaveCount(0);
+ await page.screenshot({path:'docs/system-workflow/readiness-proof/week1-setup-confirmation.png'});
+});

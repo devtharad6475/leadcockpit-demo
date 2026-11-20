@@ -1,0 +1,8 @@
+200 POST /api/copilot/conversations [empty object] (route.ts:2223) {"id":"copilot_ee0f5e3c-542d-4fe0-807f-55fd14217c64","workspaceId":"workspace_d0dcb9a4-7021-45c2-a60b-6cd22a58efcd","ownerUserId":"user_7936ae05-fd37-44e9-aa08-
+200 POST /api/copilot/conversations [wrong types] (route.ts:2223) {"id":"copilot_ee0f5e3c-542d-4fe0-807f-55fd14217c64","workspaceId":"workspace_d0dcb9a4-7021-45c2-a60b-6cd22a58efcd","ownerUserId":"user_7936ae05-fd37-44e9-aa08-
+200 POST /api/leads/upload-csv [empty object] (route.ts:2923) {"created":0,"duplicatesSkipped":0,"emptyRowsSkipped":0,"doNotContactSkipped":0,"rowsRead":0,"parseErrors":["Row ?: Unable to auto-detect delimiting character; 
+200 POST /api/leads/upload-csv [wrong types] (route.ts:2923) {"created":0,"duplicatesSkipped":0,"emptyRowsSkipped":0,"doNotContactSkipped":0,"rowsRead":0,"parseErrors":["Row ?: Unable to auto-detect delimiting character; 
+200 POST /api/leads/enrich-approved [empty object] (route.ts:3019) {"enriched":0,"ambiguous":0,"noResults":0,"failed":0,"processed":0,"results":[],"failures":[]}
+200 POST /api/leads/enrich-approved [wrong types] (route.ts:3019) {"enriched":0,"ambiguous":0,"noResults":0,"failed":0,"processed":0,"results":[],"failures":[]}
+200 POST /api/leads/bulk-score [empty object] (route.ts:3070) {"aiScored":0,"stillWaiting":0,"limit":5}
+200 POST /api/leads/bulk-score [wrong types] (route.ts:3070) {"aiScored":0,"stillWaiting":0,"limit":5}

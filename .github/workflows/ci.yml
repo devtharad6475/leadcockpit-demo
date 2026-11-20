@@ -1,0 +1,258 @@
+# Stage D.5 — Continuous Integration for LeadCockpit.
+#
+# Runs on every push + PR to main. Enforces the Ironclad Gates:
+#   1. tsc --noEmit (0 errors, HARD FAIL)
+#   2. next build (HARD FAIL)
+#   3. All golden tests (HARD FAIL on any)
+#   4. All demo-mode smoke tests (HARD FAIL on any)
+#   5. Production-readiness check (report only — env not production in CI)
+#
+# Status badge for README:
+#   ![CI](https://github.com/<owner>/<repo>/actions/workflows/ci.yml/badge.svg)
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs when a new commit is pushed — saves CI minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only repo + write token only for the GITHUB_TOKEN. Least privilege.
+permissions:
+  contents: read
+
+jobs:
+  browser-journeys:
+    name: Browser journeys (login, forms, tickets, document recovery)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PERSISTENCE_PROVIDER: json
+      AUTH_MODE: demo
+      DATABASE_URL: postgresql://user:pass@localhost:5432/build_placeholder
+      NEXT_TELEMETRY_DISABLED: "1"
+      E2E_PORT: "3216"
+      PORT: "3216"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build the browser test server
+        id: browser-build
+        run: npm run build
+      # Fresh synthetic JSON data and production sign-in, with provider/send
+      # keys blanked by the existing Playwright server configuration.
+      - name: Verify core data loads without waiting for optional panels
+        if: ${{ !cancelled() && steps.browser-build.outcome == 'success' }}
+        run: npx playwright test --config playwright.core-loading.config.ts
+      - name: Verify actual browser recovery and access journeys
+        if: ${{ !cancelled() && steps.browser-build.outcome == 'success' }}
+        run: npx playwright test --config playwright.prototype-cleanup.config.ts
+      - name: Verify owner, employee and customer ticket closure
+        if: ${{ !cancelled() && steps.browser-build.outcome == 'success' }}
+        run: npx playwright test --config playwright.customer-playtest.config.ts
+      - name: Verify manual customer tickets and separate follow-up drafts
+        if: ${{ !cancelled() && steps.browser-build.outcome == 'success' }}
+        run: npx playwright test --config playwright.customer-ticket-editor.config.ts
+      - name: Verify employee handover, access and customer memory
+        if: ${{ !cancelled() && steps.browser-build.outcome == 'success' }}
+        run: npx playwright test --config playwright.journey-audit.config.ts
+      - name: Verify joining, account recovery and honest email setup
+        if: ${{ !cancelled() && steps.browser-build.outcome == 'success' }}
+        run: npx playwright test --config playwright.account-email.config.ts
+      - name: Verify Workspace tabs and dependent settings
+        if: ${{ !cancelled() && steps.browser-build.outcome == 'success' }}
+        run: npx playwright test --config playwright.ui-cleanup.config.ts
+      - name: Verify nested customer, catalogue, settings and support recovery
+        if: ${{ !cancelled() && steps.browser-build.outcome == 'success' }}
+        run: npx playwright test --config playwright.nested-ui.config.ts nested-ui-journey
+      - name: Save browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-journey-failures
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  ironclad-gates:
+    name: Ironclad Gates (tsc + build + goldens + smokes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # 2026-09-08 — CI had no database, so the nine goldens that talk to Postgres
+    # could never pass here. They did not skip, either: src/lib/prisma.ts falls
+    # back to a placeholder connection string when DATABASE_URL is unset, so
+    # "no database configured" arrived as "authentication failed" and the suite
+    # went red on every run. A throwaway Postgres is a few seconds of runner
+    # time and it puts those goldens on the substrate production actually uses —
+    # which is the blind spot this repo keeps finding defects in.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: leadgen
+          POSTGRES_PASSWORD: leadgen
+          POSTGRES_DB: leadgen_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # JSON demo mode for the smoke + golden tests (the default; this is
+      # explicit so a stray env var on the runner can't flip it).
+      PERSISTENCE_PROVIDER: json
+      AUTH_MODE: demo
+      # The throwaway database above. Goldens marked `// PRISMA_GOLDEN` read it;
+      # everything else stays pinned to JSON by force-json-provider.ts.
+      DATABASE_URL: postgresql://leadgen:leadgen@localhost:5432/leadgen_ci?schema=public
+      # Test values, not credentials: three goldens assert that the bootstrap
+      # scripts REFUSE to run without these, and they are length-checked only.
+      # Nothing they protect exists on a CI runner.
+      AUTH_SESSION_SECRET: ci_only_session_secret_min_32_chars_0123456789
+      PLATFORM_ADMIN_SESSION_SECRET: ci_only_platform_admin_secret_min_32_chars_0123456789
+      ENCRYPTION_KEY: ci_only_encryption_key_min_16_chars_0123456789
+      # Stage C infra defaults to OFF (in-memory rate limits, in-process
+      # queue, no Sentry) — same as local dev. The Stage C golden tests
+      # inject their own test seams; they don't need real Redis/Sentry.
+      RATE_LIMIT_BACKEND: ""
+      REDIS_URL: ""
+      SENTRY_DSN: ""
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check runtime dependencies for critical or high advisories
+        run: npm audit --omit=dev --audit-level=high
+
+      # golden-operator-script-env asserts that `npm run bootstrap:owner` reads
+      # .env even when DATABASE_URL is already set in the environment — the
+      # container condition that once broke it. Its CASE D deliberately proves
+      # the child is NOT handed the secret directly, so the values have to come
+      # from a real file or the golden cannot run at all.
+      - name: Write the CI .env the bootstrap goldens read
+        run: |
+          {
+            echo "DATABASE_URL=$DATABASE_URL"
+            echo "AUTH_SESSION_SECRET=$AUTH_SESSION_SECRET"
+            echo "PLATFORM_ADMIN_SESSION_SECRET=$PLATFORM_ADMIN_SESSION_SECRET"
+            echo "ENCRYPTION_KEY=$ENCRYPTION_KEY"
+          } > .env
+
+      - name: Apply migrations to the CI database
+        run: npx prisma migrate deploy
+
+      - name: Lint (continue on error — backlog per PLAN.md Phase 10)
+        continue-on-error: true
+        run: npm run lint
+
+      - name: Type-check (HARD FAIL)
+        run: npx tsc --noEmit
+
+      - name: Build (HARD FAIL)
+        id: app-build
+        run: npm run build
+
+      # 2026-08-05 (audit F-1): CI used to re-implement the suite with its own
+      # `for script in scripts/golden/golden-*.ts` loop and a plain `npx tsx`
+      # invocation — i.e. WITHOUT the force-json preload the local runner uses,
+      # and WITHOUT the runner's deliberate exclusions. That meant "green in CI"
+      # and "green locally" were measuring two different things, and the two
+      # definitions could drift apart silently.
+      #
+      # There is now ONE definition of the suite: scripts/run-all-goldens.ts.
+      # CI calls it, exactly as a developer does. The two suite-excluded
+      # goldens (documented in that file) run as their own explicit steps below.
+      - name: Run the golden suite (HARD FAIL on any)
+        if: ${{ !cancelled() && steps.app-build.outcome == 'success' }}
+        run: npm run golden:all
+
+      # Pre-demo gate. Excluded from the suite because other goldens
+      # legitimately pollute the shared demo file mid-run; it is only
+      # meaningful against a FRESH seed, so seed first.
+      - name: Golden — demo data integrity (fresh seed)
+        if: ${{ !cancelled() && steps.app-build.outcome == 'success' }}
+        run: |
+          npm run seed:demo -- --force
+          npm run golden:demo-data-integrity
+
+      # Deployment-readiness check. Excluded from the suite because it builds a
+      # Docker image (~170s) and contends for resources under parallel load.
+      - name: Golden — docker compose
+        if: ${{ !cancelled() && steps.app-build.outcome == 'success' }}
+        run: npm run golden:docker-compose
+
+      - name: Run all demo-mode smoke tests (HARD FAIL on any)
+        if: ${{ !cancelled() && steps.app-build.outcome == 'success' }}
+        run: |
+          set -e
+          failed=0
+          for script in \
+            test:smoke \
+            test:smoke:rbac \
+            test:smoke:group-answer \
+            test:smoke:document-framework \
+            test:smoke:knowledge-compression \
+            test:smoke:prospecting \
+            test:smoke:crm-workflow \
+            test:smoke:phase5-queue \
+            test:smoke:phase6-replies \
+            test:smoke:phase7-whatsapp \
+            test:smoke:phase8-media-policy \
+            test:smoke:policy-loading
+          do
+            echo "::group::smoke: $script"
+            if ! npm run "$script"; then
+              echo "::error::smoke test failed: $script"
+              failed=$((failed + 1))
+            fi
+            echo "::endgroup::"
+          done
+          if [ "$failed" -gt 0 ]; then
+            echo "::error::$failed smoke test(s) failed"
+            exit 1
+          fi
+
+      - name: Production-readiness check (report only)
+        # Report only — CI doesn't have production env set, so the check
+        # will show 8 fails (Stage A auth). We're checking that the script
+        # RUNS, not that it passes.
+        run: npm run check:production
+        continue-on-error: true
+
+      - name: Upload build artifact (for the deploy workflow to consume)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-standalone-build
+          path: |
+            .next/standalone
+            .next/static
+            public
+          retention-days: 7
+          if-no-files-found: error

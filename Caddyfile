@@ -1,0 +1,57 @@
+# Stage D.4 — Caddy reverse proxy with automatic HTTPS.
+#
+# {$BASE_URL} is Caddy's env-var substitution syntax. The operator sets
+# BASE_URL=leadcockpit.example.com in .env, and Caddy:
+#   1. Listens on :80 + :443 for that domain.
+#   2. On first request, automatically provisions a Let's Encrypt cert.
+#   3. Auto-renews the cert forever (no certbot, no cron, no manual steps).
+#   4. Redirects all HTTP → HTTPS.
+#   5. Proxies HTTPS traffic to web:3000 (the Next.js standalone server).
+#
+# Prerequisites for the cert to provision:
+#   - DNS A record for BASE_URL must point at the VPS public IP.
+#   - Ports 80 + 443 must be reachable from the internet.
+#   - docker-compose's caddy service must be running with BASE_URL env set.
+# Until those are true, Caddy keeps retrying (with backoff) and serving
+# nothing — see docs/STAGE_D_DEPLOYMENT_RUNBOOK.md for the provisioning
+# sequence.
+
+{$BASE_URL} {
+	# Reverse proxy to the web service on the internal compose network.
+	reverse_proxy web:3000
+
+	# Compress responses (gzip + zstd). Next.js standalone doesn't compress
+	# by default; Caddy does it at the edge.
+	encode gzip zstd
+
+	# Security headers — duplicated from next.config.ts as defense-in-depth.
+	# (Caddy terminates TLS, so its headers reach the browser first; Next's
+	# headers are the fallback if Caddy is bypassed.)
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# CSP is intentionally NOT set here — Next.js generates it per-request
+		# in src/middleware.ts with a fresh nonce (so its inline bootstrap
+		# scripts work). Caddy setting a static CSP would break hydration.
+	}
+
+	# Structured JSON logs to stdout — Docker's log driver picks these up.
+	# Pipe to your log aggregator (Loki, Datadog, etc.) or `docker logs`.
+	log {
+		output stdout
+		format json
+	}
+
+	# Access logs (request lines) in JSON — useful for debugging 5xx + 429.
+	# Errors (Caddy-internal) also go to stderr by default.
+}
+
+# Optional: a plaintext fallback site that returns 404 for any other host.
+# This prevents Caddy from serving the default "Congratulations" page if
+# someone hits the VPS by IP instead of by domain.
+:80 {
+	respond "Not Found" 404
+}

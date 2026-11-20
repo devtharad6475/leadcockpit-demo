@@ -1,0 +1,1 @@
+export const campaignLearningPrompt = `Analyze campaign outcomes and summarize what worked. Return JSON with summary, winningPatterns, losingPatterns, and recommendedNextSteps. Use only provided campaign data.`;

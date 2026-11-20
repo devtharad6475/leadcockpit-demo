@@ -1,0 +1,1 @@
+export const businessExtractionPrompt = `Extract structured business facts from supplied website text. Do not invent facts. Return JSON with companyName, industry, products, services, contacts, locations, socials, strengths, certifications, catalogueLinks, confidence, and missingFields.`;

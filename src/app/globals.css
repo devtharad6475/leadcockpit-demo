@@ -1,0 +1,389 @@
+@import "tailwindcss";
+
+/**
+ * 2026-07-21 (M1) — Design tokens.
+ *
+ * Before this, the codebase had ~5 hex dialects scattered through 5000
+ * lines: #1f7a5a / #0f513b / #153d32 (greens); #fbfcf8 / #f8faf5 /
+ * #eef8f1 (surfaces); #525e54 / #46524a (muted greys); 3 different reds;
+ * 2 different ambers. The audit (DECISIONS.md 2026-07-21) called this out
+ * as the second-biggest UI debt after the 5000-line monolith.
+ *
+ * The fix: one canonical palette exposed as Tailwind v4 `@theme` tokens.
+ * Components reference these via Tailwind classes (text-primary,
+ * bg-surface, border-default, etc.) — no more raw hex in className strings.
+ * If the operator later wants to brand to Balaji Zari Udyog (gold +
+ * maroon), this is the one file to change.
+ */
+:root {
+  /* 2026-08-05 VISUAL REFRESH — Clean & Modern (indigo on cool neutrals).
+     Replaces the cream/sage palette that looked dated + flat (cream-on-cream
+     gave cards no contrast against the page; sage green read as muddy).
+     New: pure-white cards float on a cool light-grey page; one confident
+     indigo accent; neutral cool-grey text + borders. Same token NAMES so
+     every component (Card/Panel/Button/Badge/input) re-skins automatically. */
+  /* Surfaces. */
+  /* 2026-09-25 (CEO: "everything is at the same colour, I can't tell things
+     apart") — the page ground was 4% off white, so white panels barely
+     separated from it, and borders were near-invisible. Ground deepened and
+     borders strengthened one step; hue unchanged. */
+  --color-background: #eceef3;       /* page background — cool light grey */
+  --color-surface: #ffffff;          /* primary panel — pure white (lifts off the grey page) */
+  --color-surface-muted: #f9fafb;    /* sub-panel — barely-grey */
+  --color-surface-tint: #eef2ff;     /* selected/hover tint — soft indigo wash */
+
+  /* Brand (indigo). */
+  --color-primary: #4f46e5;          /* primary button / link / icon */
+  --color-primary-hover: #4338ca;    /* hover state */
+  --color-primary-strong: #3730a3;   /* active nav item */
+  --color-primary-deep: #1e1b4b;     /* dashboard hero bg */
+
+  /* Foreground (text) — neutral cool, no green tint. */
+  --color-foreground: #111827;       /* body text — near-black */
+  --color-muted: #6b7280;            /* secondary text — cool grey */
+  --color-muted-2: #6b7280;          /* alias (back-compat) */
+
+  /* Borders — neutral cool grey. */
+  --color-border-default: #dadee6;
+  --color-border-subtle: #eceef2;
+
+  /* Status — cleaner, slightly more saturated for better contrast on white. */
+  --color-success-bg: #ecfdf5;
+  --color-success-fg: #047857;
+  --color-warning-bg: #fffbeb;
+  --color-warning-fg: #b45309;
+  --color-danger-bg: #fef2f2;
+  --color-danger-fg: #b91c1c;
+  --color-info-bg: #eff6ff;
+  --color-info-fg: #1d4ed8;
+
+  /* 2026-08-04 — secondary status tokens (F-UI-1 fix). The 2026-08-02 UX
+     redesign narrowed the palette but several screens still referenced
+     -subtle / -border / -tint / foreground-muted / primary-tint names that
+     were never mapped here. Tailwind v4 silently drops a class whose color
+     token doesn't exist in @theme, so those elements rendered with NO color
+     (transparent error banners, invisible borders, default-color muted text).
+     These aliases keep every existing className self-documenting without
+     touching ~90 call-sites across 9 files. Same colours, real rules. */
+  --color-success-subtle: var(--color-success-bg);
+  --color-success-border: #a7f3d0;
+  --color-warning-subtle: var(--color-warning-bg);
+  --color-warning-border: #fde68a;
+  --color-danger-subtle: var(--color-danger-bg);
+  --color-danger-border: #fecaca;
+  --color-info-subtle: var(--color-info-bg);
+  --color-info-border: #b6d2ec;
+  --color-foreground-muted: var(--color-muted);
+  --color-primary-tint: var(--color-surface-tint);
+  /* F3 (2026-08-04 CONTINUOUS-2 audit): primary-bg was referenced by 2 ribbon
+     surfaces (focus-lead ribbon + LeadReview bulk-action bar) but never defined,
+     so Tailwind v4 silently dropped the class and both bars rendered transparent.
+     Alias to the same subtle tint tone primary-tint uses (a soft primary wash
+     suitable for a highlight ribbon / sticky action surface). */
+  --color-primary-bg: var(--color-surface-tint);
+}
+
+@theme inline {
+  /* Map CSS vars to Tailwind color tokens so `text-primary`,
+     `bg-surface`, etc. work as Tailwind classes. */
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-surface-tint: var(--color-surface-tint);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-strong: var(--color-primary-strong);
+  --color-primary-deep: var(--color-primary-deep);
+  --color-primary-tint: var(--color-primary-tint);
+  --color-primary-bg: var(--color-primary-bg);
+  --color-foreground: var(--color-foreground);
+  --color-foreground-muted: var(--color-foreground-muted);
+  --color-muted: var(--color-muted);
+  --color-muted-2: var(--color-muted-2);
+  --color-border-default: var(--color-border-default);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-success-bg: var(--color-success-bg);
+  --color-success-fg: var(--color-success-fg);
+  --color-success-subtle: var(--color-success-subtle);
+  --color-success-border: var(--color-success-border);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-warning-fg: var(--color-warning-fg);
+  --color-warning-subtle: var(--color-warning-subtle);
+  --color-warning-border: var(--color-warning-border);
+  --color-danger-bg: var(--color-danger-bg);
+  --color-danger-fg: var(--color-danger-fg);
+  --color-danger-subtle: var(--color-danger-subtle);
+  --color-danger-border: var(--color-danger-border);
+  --color-info-bg: var(--color-info-bg);
+  --color-info-fg: var(--color-info-fg);
+  --color-info-subtle: var(--color-info-subtle);
+  --color-info-border: var(--color-info-border);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  /* 2026-07-21: apply Geist (the project loads it via next/font but the
+     body previously forced Arial — the audit caught this dead weight).
+     Fall back through the standard sans stack if Geist fails to load. */
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/**
+ * 2026-07-21: focus-visible ring is now applied GLOBALLY so every
+ * interactive element gets one (the audit found zero :focus-visible
+ * rules — accessibility baseline failure). Outlines the element with
+ * the primary green ring + a 3px halo when keyboard-focus lands.
+ */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Keep the existing global .btn / .icon-btn / .input / .label classes for
+   back-compat — they're used by ~105 inline buttons across page.tsx + the
+   section files. These get migrated to the <Button> primitive as the screen
+   rebuilds happen. Don't remove them until that migration is complete.
+   2026-08-05 VISUAL REFRESH: aligned .btn to <Button> EXACTLY (border-radius
+   0.5rem = rounded-lg, transition-colors, font-weight 600 = semibold) so the
+   105 legacy buttons are pixel-identical to <Button> — no visible inconsistency
+   across the app while the code-level migration continues screen-by-screen. */
+/* 2026-09-04 (N-UX-14) — THESE LIVE IN @layer components, and that matters.
+ *
+ * They used to be unlayered. `@import "tailwindcss"` registers every utility
+ * inside @layer utilities, and an UNLAYERED rule beats any layered one whatever
+ * its specificity or source order. So for a year, anyone writing
+ * `class="input py-1"` or `class="btn py-1 px-2"` got a silently ignored
+ * utility: the component's own padding always won.
+ *
+ * It caused three separate visible defects. N-UX-9: a search field rendered its
+ * icon on top of its own placeholder because `pl-9` never applied. N-UX-14: the
+ * Compliance table showed eleven dropdowns with their text sliced in half,
+ * because `h-8` (layered? no — height is not set by .input, so it applied) fixed
+ * the box at 32px while `py-1` lost to .input's 0.65rem padding, leaving ~41px
+ * of content inside it. And `class="input w-24"` on the Catalogue price field
+ * was full width, because .input's `width: 100%` won.
+ *
+ * Naming the layer fixes all of it at the root: @layer components sorts BEFORE
+ * @layer utilities, so a utility now beats the component class — which is what
+ * every author writing one already expected. Thirteen call sites across the app
+ * change appearance as a result, every one of them in the direction its author
+ * intended.
+ *
+ * Anything added below must stay inside this layer for the same reason.
+ */
+@layer components {
+  .btn {
+    display: inline-flex;
+    min-height: 2.75rem;            /* 2026-08-05 M-P1-2: was 2.5rem (40px); bumped to 44px WCAG 2.5.5 minimum */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;            /* was 0.375rem — now matches <Button> rounded-lg */
+    background: var(--color-primary);
+    padding: 0.55rem 0.875rem;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.15;
+    transition: background-color 0.15s ease, color 0.15s ease;  /* matches <Button> transition-colors */
+  }
+
+  .btn:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+
+  .btn.secondary {
+    border: 1px solid var(--color-border-default);
+    background: var(--color-surface);
+    color: var(--color-foreground);
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.06);
+  }
+
+  .btn.secondary:hover:not(:disabled) {
+    background: var(--color-surface-muted);
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    height: 2.75rem;                 /* 2026-08-05 M-P1-1: was 2.5rem (40px); bumped to 44px */
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.5rem;            /* was 0.375rem — harmonized with .btn + <Button> */
+    background: var(--color-surface);
+    color: var(--color-foreground);
+    transition: background-color 0.15s ease;
+  }
+
+  .icon-btn:hover:not(:disabled) {
+    background: var(--color-surface-muted);
+  }
+
+  .input {
+    width: 100%;
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.5rem;            /* 2026-08-05 V-P2-2: was 0.375rem (6px); aligned to buttons (8px) */
+    background: white;
+    padding: 0.65rem 0.75rem;
+    color: var(--color-foreground);
+    outline: none;
+  }
+
+  /* 2026-08-20 N-UX-9. A search field written as `class="input pl-9"` rendered
+     its magnifying-glass icon on top of its own placeholder text: `pl-9` never
+     applied. `@import "tailwindcss"` registers every utility inside
+     @layer utilities, and an UNLAYERED rule beats any layered one regardless of
+     specificity or source order — so `.input`'s padding shorthand silently won.
+     The failure is invisible: no error, the class is simply ignored.
+     This class exists so the one field that needs room for an icon gets it from
+     the same unlayered rule that is doing the overriding. The general hazard —
+     every Tailwind utility that collides with a property .btn or .input sets is
+     dead on arrival — is tracked as N-UX-10. */
+  .input.has-leading-icon {
+    padding-left: 2.25rem;
+  }
+
+  /* 2026-09-04 (N-UX-14) — a compact field for dense table rows.
+   *
+   * Four places tried to shrink a field with Tailwind utilities:
+   * `class="input h-8 py-1 text-sm"`. It did not work, and the Compliance table
+   * showed the result on eleven rows at once — every dropdown's text sliced
+   * horizontally in half.
+   *
+   * The cause is the same one N-UX-9 documents above. `@import "tailwindcss"`
+   * puts every utility inside @layer utilities, and an UNLAYERED rule beats any
+   * layered one whatever its specificity. So `.input`'s `padding: 0.65rem` won
+   * over `py-1`, leaving roughly 41px of content inside a box `h-8` had fixed at
+   * 32px. The height applied; the padding it was meant to go with did not.
+   *
+   * The fix has to live here, unlayered, for the same reason. It sets no height —
+   * the padding and line-height size the control, so it can never be shorter than
+   * the text inside it.
+   */
+  .input.input-sm {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    border-radius: 0.375rem;
+  }
+
+  .input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  }
+
+  .label {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--color-muted);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+}
+
+/* Cluster 3 fix (2026-07-26 audit, P0-6): when an async action is in flight,
+   the root <main> carries data-busy="true". Every .btn is dimmed + non-
+   interactive (pointer-events:none) so the user gets a clear visual signal
+   that clicks are locked, on top of the JS capture-phase guard in page.tsx.
+   2026-08-02 (UX redesign): extended to also cover the <Button> component
+   (which renders a native <button>, not a .btn class) and .icon-btn, so the
+   async-lock works uniformly across legacy + new primitives as the .btn →
+   <Button> migration proceeds. Native <button> is intentionally NOT targeted
+   globally (that would catch nav/sidebar buttons); only the action buttons. */
+main[data-busy="true"] .btn,
+main[data-busy="true"] .icon-btn,
+main[data-busy="true"] button[data-busy-locked="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: wait;
+}
+
+/**
+ * 2026-08-02 (UX redesign Phase 1): Radix overlay open/close animations.
+ *
+ * tailwindcss-animate isn't installed (Tailwind v4 CSS-first config has no
+ * plugin loader here), so these utilities are defined as plain CSS classes
+ * scoped to Radix's data-state attributes. The primitives (Drawer, Dropdown,
+ * Tooltip, Modal overlay) reference them by name. Fade + slide + zoom cover
+ * every Radix surface we use; durations match the calm feel of the palette.
+ */
+@keyframes lc-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lc-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes lc-slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes lc-slide-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@keyframes lc-zoom-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+.lc-overlay-in { animation: lc-fade-in 150ms ease-out; }
+.lc-overlay-out { animation: lc-fade-out 120ms ease-in; }
+.lc-drawer-in { animation: lc-slide-in-right 220ms cubic-bezier(0.16, 1, 0.3, 1); }
+.lc-drawer-out { animation: lc-slide-out-right 180ms ease-in; }
+.lc-pop-in { animation: lc-zoom-in 130ms ease-out; }
+
+/**
+ * 2026-08-05 (audit U-8) — thin, hover-only scrollbar for a nested scroll
+ * region. Used on the sidebar nav, which is tall enough to need its own
+ * scroll independent of the page — correct behaviour, but its default
+ * full-width native scrollbar visually competed with the page's own
+ * scrollbar for attention. Purely cosmetic: scroll behaviour is unchanged.
+ */
+.lc-thin-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: transparent transparent;
+}
+.lc-thin-scroll:hover {
+  scrollbar-color: var(--color-border-default) transparent;
+}
+.lc-thin-scroll::-webkit-scrollbar { width: 6px; }
+.lc-thin-scroll::-webkit-scrollbar-track { background: transparent; }
+.lc-thin-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+.lc-thin-scroll:hover::-webkit-scrollbar-thumb { background: var(--color-border-default); }
+
+
+/**
+ * 2026-09-28 — phones.
+ *
+ * 1. `color-scheme: light`. The app has one (light) palette. Without this, a
+ *    phone set to dark mode draws the browser's own parts — date pickers,
+ *    select menus, scrollbars, autofill — dark, on top of our white fields,
+ *    and a dark date picker inside a white box is unreadable.
+ * 2. Form fields are 16px on phones. Smaller text in a field makes iPhone
+ *    Safari zoom the whole page in when the field is tapped, and it does not
+ *    zoom back out. Unlayered on purpose, like `.input.has-leading-icon`
+ *    above, so it wins over a `text-sm` utility on the same field.
+ * 3. No sideways page scroll on a phone, whatever one wide child does. Wide
+ *    tables keep their own inner scroll (overflow-x-auto) as before.
+ */
+:root {
+  color-scheme: light;
+}
+
+@media (max-width: 639px) {
+  input.input,
+  textarea.input,
+  select.input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 1023px) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}

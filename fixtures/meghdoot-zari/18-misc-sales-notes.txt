@@ -1,0 +1,68 @@
+FIXTURE DATA - NOT REAL BUSINESS DATA.
+Meghdoot Zari & Trims Pvt Ltd is a fictional company created for UI audit testing.
+Do not use any figure in this file for real customer communication.
+
+MEGHDOOT ZARI - MISC SALES NOTES
+(old notepad file, not cleaned up, kept for reference)
+
+--------------------------------------------------
+
+minimum order zari thread - 10 kg per shade
+laces 10 rolls
+sequins 2 kg
+
+--------------------------------------------------
+
+things buyers keep asking that we never wrote down properly:
+
+- whether we can supply on Amazon / Flipkart - NO, we are not doing marketplace
+- whether we do embroidery job work on garments - NO, we only do dyeing and plating
+  job work on thread, not embroidery on finished garments. people confuse this.
+- whether the shade card is same as catalogue - NO. shade card is physical shades.
+  catalogue is the PDF with designs and product list.
+- whether we hold stock or make to order - both. 60+ standard shades from stock,
+  custom shades made to order.
+
+--------------------------------------------------
+
+Surat market notes:
+
+Ring Road is the wholesale hub, most of our walk-in trade comes from there.
+Katargam is where the production units are.
+Most brokers in the market work on commission from the buyer side, not seller side.
+Broker enquiries should be treated like any other - ask for the end buyer's business
+name and city.
+
+--------------------------------------------------
+
+transport companies we use:
+
+- for Gujarat and Maharashtra - local transport, freight to pay
+- for north - Delhi/Jaipur route transport
+- small parcels under 20 kg - courier, we pay and add to invoice unless order is
+  above 50000 in which case freight is free
+
+--------------------------------------------------
+
+reminders from Rakesh (do not ignore these):
+
+1. NOBODY gives a rate on whatsapp. this has cost us money twice. rate comes from
+   Priya in writing only.
+2. do not promise delivery faster than what is on the sheet. losing an order is
+   cheaper than missing a date.
+3. if a customer is angry, acknowledge and pass it up. do not argue.
+4. we do not export. stop telling people "we will check" - just say we do not
+   export and send it to me.
+
+--------------------------------------------------
+
+old note - festival season staffing:
+Aug-Nov we run extra shift at Katargam. lead times same, do not promise faster
+just because of extra shift.
+
+--------------------------------------------------
+
+random:
+GSTIN 24AABCM4567P1Z8
+office Ring Road Surat 395002
+started 2009

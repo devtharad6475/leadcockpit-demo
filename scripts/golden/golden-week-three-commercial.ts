@@ -1,0 +1,42 @@
+import "./_helpers/isolate-standalone";
+import assert from "node:assert/strict";
+import { cancelOrder, computeDiscountFlag, createOrderDirect, hydrateCommercialLineItems, convertQuoteToOrder, createReorderDraft } from "@/services/OrderService";
+import type { OrderLineItem } from "@/lib/types";
+import { sumQuantitiesExact } from "@/lib/money";
+import { NeedsActionError } from "@/lib/user-errors";
+
+async function main() {
+  const line: OrderLineItem = { id: "line", productId: "product", productName: "Thread", quantity: 0.3, unit: "kg", unitPrice: 100, currencyCode: "INR", lineTotal: 30 };
+  const original = await createOrderDirect({ workspaceId: "workspace", leadId: "customer", lineItems: [line], currencyCode: "INR" });
+  const itemId = original.lineItems[0].id;
+  const patch = await cancelOrder({ ...original, status: "partial_shipped", shippedQuantityByLine: { [itemId]: 0.1 } }, { actor: "owner", cancelQuantitiesByLine: { [itemId]: 0.2 } });
+  assert.equal(patch.cancelledQuantityByLine?.[itemId], 0.2);
+  assert.equal(patch.grandTotal, 10, "Exactly 0.1 kg remains billable");
+  const firstCancel = await cancelOrder({ ...original, status: "confirmed" }, { actor: "owner", cancelQuantitiesByLine: { [itemId]: 0.1 } });
+  const secondCancel = await cancelOrder({ ...original, ...firstCancel }, { actor: "owner", cancelQuantitiesByLine: { [itemId]: 0.2 } });
+  assert.equal(secondCancel.cancelledQuantityByLine?.[itemId], 0.3, "Fractional cancellations add to the exact ordered quantity");
+  assert.equal(secondCancel.status, "cancelled");
+  const products = [{ id: "product", name: "Thread", price: 100 }];
+  const dollar = await createOrderDirect({ workspaceId: "workspace", leadId: "customer", lineItems: [{ ...line, currencyCode: "USD", unitPrice: 5 }], currencyCode: "USD", products });
+  assert.equal(dollar.discountGiven, false, "A USD price cannot be compared to the INR catalogue base");
+  const dollarReorder = await createReorderDraft(dollar, { products });
+  assert.notEqual(dollarReorder.lineItems[0].priceChangedSinceLastOrder, true, "A dollar reorder must not claim that its rupee catalogue price has changed");
+  assert.equal(dollarReorder.lineItems[0].currentPriceSnapshot, undefined);
+  assert.equal(dollarReorder.lineItems[0].unitPrice, 5, "The agreed historical dollar price remains intact");
+  const actualDiscount = computeDiscountFlag({ lineItems: [{ ...line, unitPrice: 90 }], products });
+  assert.equal(actualDiscount.totalDiscountAmount, 3);
+  const converted = await convertQuoteToOrder({ id: "quote", workspaceId: "workspace", leadId: "customer", quoteNumber: 1, status: "accepted", lineItems: dollar.lineItems, grandTotal: dollar.grandTotal, currencyCode: "USD", createdAt: "", updatedAt: "" }, { products });
+  assert.equal(converted.order.discountGiven, false);
+  assert.equal(sumQuantitiesExact(0.1, 0.2), 0.3);
+  assert.equal(sumQuantitiesExact(0.0000003, -0.0000001), 0.0000002, "Sub-milligram units must not be rounded to money precision");
+  const hydrated = hydrateCommercialLineItems([{ productId: "product", quantity: 2, unitPrice: 100 }], [{ ...products[0], priceUnit: "per kg" }]);
+  assert.equal(hydrated[0].productName, "Thread");
+  assert.equal(hydrated[0].unit, "kg");
+  assert.equal(hydrated[0].lineTotal, 200);
+  assert.throws(() => hydrateCommercialLineItems([{ productId: "missing", quantity: 2, unitPrice: 100 }], products), NeedsActionError);
+  const adHoc = hydrateCommercialLineItems([{ productName: "Custom sample", quantity: 1, unit: "set", unitPrice: 20 }], products);
+  assert.equal(adHoc[0].productName, "Custom sample");
+  assert.equal(adHoc[0].unit, "set");
+  console.log("PASS golden-week-three-commercial: exact fractional cancellation and currency-safe discount");
+}
+main().catch((error) => { console.error(error); process.exitCode = 1; });

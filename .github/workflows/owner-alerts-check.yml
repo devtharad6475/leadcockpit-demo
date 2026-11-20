@@ -1,0 +1,45 @@
+# 2026-09-28 — the regular check for the owner's time-based alerts:
+# a customer waiting more than 2 working hours, and an urgent ticket 30 minutes
+# before its deadline. Alerts go ONLY to the owner's own WhatsApp (when the
+# owner switched them on in Workspace settings); nothing is ever sent to a
+# customer. Complaints and big orders alert at once and do not need this.
+#
+# Uses the same secret and URL as daily-run.yml. It also needs the repository
+# variable OWNER_ALERTS_CHECK = true — kept separate because every run wakes
+# the free Render site (every 30 minutes, 08:00–21:00 IST, Mon–Sat is about
+# 14 hours a day of the free plan's monthly hours).
+# Rules: docs/LOGIC.md OWNER-WHATSAPP.
+name: owner-alerts-check
+
+on:
+  schedule:
+    # Every 30 minutes, 02:30–15:30 UTC = 08:00–21:00 IST, Monday to Saturday.
+    - cron: "*/30 2-15 * * 1-6"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run the owner-alerts check
+        env:
+          DAILY_RUN_SECRET: ${{ secrets.DAILY_RUN_SECRET }}
+          DAILY_RUN_URL: ${{ vars.DAILY_RUN_URL }}
+          OWNER_ALERTS_CHECK: ${{ vars.OWNER_ALERTS_CHECK }}
+        run: |
+          if [ "$OWNER_ALERTS_CHECK" != "true" ] || [ -z "$DAILY_RUN_SECRET" ] || [ -z "$DAILY_RUN_URL" ]; then
+            echo "Owner alerts check is not switched on (OWNER_ALERTS_CHECK, DAILY_RUN_SECRET, DAILY_RUN_URL) — skipping."
+            exit 0
+          fi
+          for i in $(seq 1 18); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$DAILY_RUN_URL/api/health" || true)
+            [ "$code" = "200" ] && break
+            sleep 10
+          done
+          code=$(curl -s -o /tmp/out.json -w '%{http_code}' --max-time 60 -X POST \
+            -H "x-daily-run-secret: $DAILY_RUN_SECRET" "$DAILY_RUN_URL/api/internal/owner-alerts-check")
+          echo "owner-alerts-check answered $code: $(cat /tmp/out.json)"
+          [ "$code" = "202" ]

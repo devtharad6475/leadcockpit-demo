@@ -1,0 +1,2567 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum WorkspaceStatus {
+  active
+  paused
+  archived
+  /// Stage 5 / WP2 (2026-07-28) — operator kill-switch. Blocks logins for
+  /// the workspace's users; preserves all data; reversible. See LOGIC.md.
+  suspended
+}
+
+enum UserRole {
+  owner
+  admin
+  sales_member
+  viewer
+}
+
+enum BusinessProfileStatus {
+  draft
+  reviewed
+  approved
+}
+
+enum CrawlStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+enum ICPStatus {
+  suggested
+  selected
+  rejected
+  archived
+}
+
+enum CompanySizeBucket {
+  solo_small_business
+  small_company
+  medium_company
+  large_company
+  unknown
+}
+
+enum CampaignStatus {
+  draft
+  active
+  paused
+  completed
+  archived
+}
+
+enum ApprovalStatus {
+  needs_review
+  approved
+  rejected
+}
+
+enum LeadStatus {
+  prospected
+  contacted_cold
+  talking
+  sample_phase
+  discovered
+  needs_review
+  approved
+  rejected
+  enriching
+  enriched
+  message_ready
+  contacted
+  replied
+  interested
+  not_interested
+  mql
+  sql
+  hot_lead
+  opportunity
+  won
+  closed_won
+  lost
+  closed_lost
+  do_not_contact
+  invalid
+  duplicate
+}
+
+enum EnrichmentStatus {
+  not_started
+  pending
+  running
+  completed
+  failed
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+  unsure
+}
+
+enum QualificationStatus {
+  unqualified
+  possible
+  good_prospect
+  mql
+  sql
+  hot_lead
+  disqualified
+  not_scored
+}
+
+enum DuplicateStatus {
+  pending
+  merged
+  ignored
+}
+
+enum MessageTemplateStatus {
+  draft
+  approved
+  rejected
+  used
+}
+
+enum OutreachDirection {
+  outbound
+  inbound
+}
+
+enum OutreachStatus {
+  drafted
+  approved
+  sent_manual
+  sent_api
+  sent
+  replied
+  failed
+  manual
+}
+
+enum AgentRunStatus {
+  running
+  completed
+  failed
+}
+
+enum IntegrationStatus {
+  not_connected
+  connected
+  error
+}
+
+enum WebhookProvider {
+  whatsapp_cloud
+  gmail
+  smtp
+  google_maps
+  google_search
+  instagram
+  linkedin
+  indiamart
+  tradeindia
+  apollo
+  hunter
+  clearbit
+  email_verifier
+  crm_hubspot
+  crm_zoho
+  google_sheets
+  zapier_webhook
+  manual
+}
+
+enum SenderAccountStatus {
+  active
+  paused
+  disconnected
+  error
+}
+
+enum ProviderAccountStatus {
+  active
+  paused
+  disconnected
+  error
+}
+
+enum WhatsAppTemplateStatus {
+  draft
+  pending
+  approved
+  rejected
+  paused
+}
+
+model Workspace {
+  id                           String                         @id @default(cuid())
+  name                         String
+  ownerUserId                  String?                        @map("owner_user_id")
+  businessName                 String?                        @map("business_name")
+  industry                     String?
+  targetAudience               String?                        @map("target_audience")
+  status                       WorkspaceStatus                @default(active)
+  /// 2026-07-21 (R1) — Emergency kill-switch + per-customer auto-send
+  /// toggle + owner WhatsApp number for digest. Per docs/LOGIC.md.
+  autonomyKillSwitch           Boolean?                       @default(false) @map("autonomy_kill_switch")
+  autoSendToggle               Boolean?                       @default(false) @map("auto_send_toggle")
+  ownerWhatsappNumber          String?                        @map("owner_whatsapp_number")
+  /// 2026-09-28 — owner's own WhatsApp summary + urgent alerts (all off by
+  /// default). Shape: OwnerNotifySettings in src/lib/owner-notify.ts.
+  ownerNotifySettings          Json?                          @map("owner_notify_settings")
+  /// Stage 5 / WP2 (2026-07-28) — operator kill-switch timestamp. Set when
+  /// status → suspended, cleared on resume. See docs/LOGIC.md 2026-07-28.
+  suspendedAt                  DateTime?                      @map("suspended_at")
+  /// Operator who suspended (audit trail).
+  suspendedByAdminId           String?                        @map("suspended_by_admin_id")
+  createdAt                    DateTime                       @default(now()) @map("created_at")
+  updatedAt                    DateTime                       @updatedAt @map("updated_at")
+  users                        User[]
+  businessProfiles             BusinessProfile[]
+  websiteCrawlJobs             WebsiteCrawlJob[]
+  websiteCrawlConsents         WebsiteCrawlConsent[]
+  websiteCrawlPages            WebsiteCrawlPage[]
+  businessExtractions          BusinessExtraction[]
+  productKnowledges            ProductKnowledge[]
+  productVarieties             ProductVariety[]
+  productApplications          ProductApplication[]
+  buyerSegments                BuyerSegment[]
+  productApplicationMarketMaps ProductApplicationMarketMap[]
+  icps                         ICP[]
+  campaigns                    Campaign[]
+  leads                        Lead[]
+  knowledgeEntries             KnowledgeEntry[]
+  interactions                 Interaction[]
+  humanFallbackTasks           HumanFallbackTask[]
+  leadReviewSettings           LeadReviewSettings[]
+  leadReviewDecisions          LeadReviewDecision[]
+  leadEnrichmentRuns           LeadEnrichmentRun[]
+  duplicateCandidates          DuplicateCandidate[]
+  messageTemplates             MessageTemplate[]
+  outreachActivities           OutreachActivity[]
+  replies                      Reply[]
+  campaignMetrics              CampaignMetric[]
+  campaignLearnings            CampaignLearning[]
+  integrations                 Integration[]
+  agentRuns                    AgentRun[]
+  auditLogs                    AuditLog[]
+  webhookEvents                WebhookEvent[]
+  processedWebhookMessages     ProcessedWebhookMessage[]
+  leadPhoneNumbers             LeadPhoneNumber[]
+  providerAccounts             ProviderAccount[]
+  whatsAppTemplates            WhatsAppTemplate[]
+  eventLogs                    EventLog[]
+  jobRuns                      JobRun[]
+  agentBehaviorPolicies        AgentBehaviorPolicy[]
+  companyCommunicationSettings CompanyCommunicationSettings[]
+  conversationPolicies         ConversationPolicy[]
+  whatsAppAgentSettings        WhatsAppAgentSettings[]
+  escalationRules              EscalationRule[]
+  unknownQuestions             UnknownQuestion[]
+  autoReplyLogs                AutoReplyLog[]
+  mediaCatalogItems            MediaCatalogItem[]
+  knowledgeBaseDocuments       KnowledgeBaseDocument[]
+  knowledgeBaseChunks          KnowledgeBaseChunk[]
+  knowledgeBaseQueryLogs       KnowledgeBaseQueryLog[]
+  llmProviderCredentials       LLMProviderCredential[]
+  llmModelRoutings             LLMModelRouting[]
+  aiUsageLimits                AIUsageLimit[]
+  // Phase 4A — back-relations for new models
+  userCredentials              UserCredential[]
+  doNotContactEntries          DoNotContactEntry[]
+  knowledgeQuestionAnswers     KnowledgeQuestionAnswer[]
+  knowledgeExtractionRuns      KnowledgeExtractionRun[]
+  knowledgeExtractionBatches   KnowledgeExtractionBatch[]
+  knowledgeExtractionSourceBundles KnowledgeExtractionSourceBundle[]
+  knowledgeExtractionSources   KnowledgeExtractionSource[]
+  salesSettings                SalesSettings[]
+  policySettings               PolicySettings[]
+  communicationSettings        CommunicationSettings[]
+  productSettings              ProductSettings[]
+  settingsConflicts            SettingsConflict[]
+  pendingSettingsDrafts        PendingSettingsDraft[]
+  agentAutonomousSettings      AgentAutonomousSettings[]
+  /// 2026-07-21 (R1) — Stage 3 Order/Quote back-relations.
+  orders                       Order[]
+  quotes                       Quote[]
+  /// 2026-07-21 (R1) — Stage 2 Ticket back-relation (was missing).
+  tickets                      Ticket[]
+  /// Stage A (2026-07-26) — WorkspaceMember back-relation. The JSON store
+  /// always had this collection; the Prisma schema didn't. Needed for
+  /// round-robin ticket assignment (listActiveStaffForWorkspace) and
+  /// future team-management features. Pinned by golden:prisma-commercial-parity.
+  workspaceMembers             WorkspaceMember[]
+  /// Owner Copilot (2026-08-01) — owner-facing assistant chat conversations.
+  ownerCopilotConversations    OwnerCopilotConversation[]
+  followUps                    FollowUp[]
+  outcomeSignals               OutcomeSignal[]
+  /// N-DATA-3 (2026-08-18) — back-relations for the ten models that carried a
+  /// workspace_id with no foreign key behind it. Without these Postgres did not
+  /// know the column pointed anywhere, so deleting a tenant left its rows behind:
+  /// 246 orphaned rows were measured in the ship database before this was added.
+  ticketEvents                 TicketEvent[]
+  ticketSlaSettingsRows        TicketSlaSettings[]
+  platformTickets              PlatformTicket[]
+  platformTicketEvents         PlatformTicketEvent[]
+  platformUserBlocks           PlatformUserBlock[]
+  featureFlags                 FeatureFlag[]
+  passwordResetTokens          PasswordResetToken[]
+  emailVerificationTokens      EmailVerificationToken[]
+  invites                      Invite[]
+  ownerCopilotMessages         OwnerCopilotMessage[]
+
+  @@map("workspaces")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  workspaceId String    @map("workspace_id")
+  name        String
+  email       String
+  role        UserRole  @default(owner)
+  /// Stage 5 / WP1 (2026-07-28) — When the user verified their email. Per
+  /// docs/LOGIC.md: signup is SOFT-verified (login allowed before verifying);
+  /// this field drives the in-app banner + future "required" tightening.
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  /// Stage A (2026-07-26) — back-relation for WorkspaceMember.
+  workspaceMembers WorkspaceMember[]
+
+  @@unique([workspaceId, email])
+  @@index([workspaceId])
+  @@map("users")
+}
+
+/// Stage A (2026-07-26) — Workspace membership. Mirrors the JSON
+/// `WorkspaceMember` type (src/lib/types.ts:79). Required for:
+///   1. Round-robin ticket assignment (WorkspacePrismaRepository
+///      .listActiveStaffForWorkspace, was returning [] because there was
+///      no table to query).
+///   2. Future team-management UI (invite, role-change, deactivate).
+///   3. Auth: bootstrapOwner writes a row here so the owner is a real
+///      member of the workspace.
+/// One row per (workspace, user). Status tracks invite lifecycle.
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  workspaceId String    @map("workspace_id")
+  // N-DATA-18 (2026-08-25, audit A-7): NULLABLE, and it has to be. An invited
+  // member has no User row yet - the User is created when they accept. The
+  // invite flow used to write the empty string here, which JSON accepted (a
+  // file does not check) and Postgres refused with
+  // workspace_members_user_id_fkey, so inviting a teammate was 100% broken on
+  // the substrate we ship on. Nullable also FIXES @@unique([workspaceId,
+  // userId]): Postgres treats NULLs as distinct, so two pending invites can
+  // coexist, where two empty strings could not. Duplicate invites are still
+  // blocked by @@unique([workspaceId, email]).
+  userId      String?   @map("user_id")
+  email       String
+  name        String?
+  role        UserRole
+  status      String    @default("active") // "active" | "invited" | "disabled"
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@unique([workspaceId, email])
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([workspaceId, status])
+  @@map("workspace_members")
+}
+
+model BusinessProfile {
+  id                       String                @id @default(cuid())
+  workspaceId              String                @map("workspace_id")
+  companyName              String?               @map("company_name")
+  websiteUrl               String?               @map("website_url")
+  industry                 String?
+  businessType             String?               @map("business_type")
+  description              String?
+  productsJson             Json?                 @map("products_json")
+  servicesJson             Json?                 @map("services_json")
+  productCategoriesJson    Json?                 @map("product_categories_json")
+  contactEmail             String?               @map("contact_email")
+  contactPhone             String?               @map("contact_phone")
+  whatsappNumber           String?               @map("whatsapp_number")
+  address                  String?
+  city                     String?
+  state                    String?
+  country                  String?
+  targetGeographiesJson    Json?                 @map("target_geographies_json")
+  currentCustomerTypesJson Json?                 @map("current_customer_types_json")
+  desiredCustomerTypesJson Json?                 @map("desired_customer_types_json")
+  strengthsJson            Json?                 @map("strengths_json")
+  limitationsJson          Json?                 @map("limitations_json")
+  certificationsJson       Json?                 @map("certifications_json")
+  socialLinksJson          Json?                 @map("social_links_json")
+  catalogueLinksJson       Json?                 @map("catalogue_links_json")
+  proofAssetsJson          Json?                 @map("proof_assets_json")
+  languagePreference       String?               @map("language_preference")
+  tonePreference           String?               @map("tone_preference")
+  status                   BusinessProfileStatus @default(draft)
+  createdAt                DateTime              @default(now()) @map("created_at")
+  updatedAt                DateTime              @updatedAt @map("updated_at")
+  workspace                Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  icps                     ICP[]
+  campaigns                Campaign[]
+  fieldsJson               Json?            @map("fields_json")
+  /// N13 (2026-09-25): which checklist the business is asked. Kinds are
+  /// manufacturer / trader / retailer / service; exports is an add-on.
+  /// Unset confirmed_at = not confirmed, a proposal is shown instead.
+  checklistKinds           String[]         @default([]) @map("checklist_kinds")
+  checklistExports         Boolean          @default(false) @map("checklist_exports")
+  checklistConfirmedAt     DateTime?        @map("checklist_confirmed_at")
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@map("business_profiles")
+}
+
+model WebsiteCrawlJob {
+  id                  String               @id @default(cuid())
+  workspaceId         String               @map("workspace_id")
+  websiteUrl          String               @map("website_url")
+  status              CrawlStatus          @default(pending)
+  pagesFound          Int                  @default(0) @map("pages_found")
+  pagesCrawled        Int                  @default(0) @map("pages_crawled")
+  errorMessage        String?              @map("error_message")
+  startedAt           DateTime?            @map("started_at")
+  completedAt         DateTime?            @map("completed_at")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  workspace           Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  pages               WebsiteCrawlPage[]
+  businessExtractions BusinessExtraction[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@map("website_crawl_jobs")
+}
+
+model WebsiteCrawlPage {
+  id           String          @id @default(cuid())
+  crawlJobId   String          @map("crawl_job_id")
+  workspaceId  String          @map("workspace_id")
+  url          String
+  title        String?
+  rawHtml      String?         @map("raw_html")
+  cleanedText  String?         @map("cleaned_text")
+  metadataJson Json?           @map("metadata_json")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+  job          WebsiteCrawlJob @relation(fields: [crawlJobId], references: [id], onDelete: Cascade)
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([crawlJobId])
+  @@map("website_crawl_pages")
+}
+
+model BusinessExtraction {
+  id                           String           @id @default(cuid())
+  workspaceId                  String           @map("workspace_id")
+  crawlJobId                   String?          @map("crawl_job_id")
+  extractedCompanyName         String?          @map("extracted_company_name")
+  extractedIndustry            String?          @map("extracted_industry")
+  extractedProductsJson        Json?            @map("extracted_products_json")
+  extractedServicesJson        Json?            @map("extracted_services_json")
+  extractedContactsJson        Json?            @map("extracted_contacts_json")
+  extractedLocationsJson       Json?            @map("extracted_locations_json")
+  extractedSocialsJson         Json?            @map("extracted_socials_json")
+  extractedStrengthsJson       Json?            @map("extracted_strengths_json")
+  extractedTargetCustomersJson Json?            @map("extracted_target_customers_json")
+  extractedCertificationsJson  Json?            @map("extracted_certifications_json")
+  extractedCatalogueLinksJson  Json?            @map("extracted_catalogue_links_json")
+  confidenceJson               Json?            @map("confidence_json")
+  missingFieldsJson            Json?            @map("missing_fields_json")
+  createdAt                    DateTime         @default(now()) @map("created_at")
+  updatedAt                    DateTime         @updatedAt @map("updated_at")
+  workspace                    Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  crawlJob                     WebsiteCrawlJob? @relation(fields: [crawlJobId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([crawlJobId])
+  @@map("business_extractions")
+}
+
+model ICP {
+  id                     String            @id @default(cuid())
+  workspaceId            String            @map("workspace_id")
+  businessProfileId      String            @map("business_profile_id")
+  name                   String
+  description            String?
+  buyerType              String?           @map("buyer_type")
+  industriesJson         Json?             @map("industries_json")
+  geographyJson          Json?             @map("geography_json")
+  companySizeBucket      CompanySizeBucket @default(unknown) @map("company_size_bucket")
+  likelyNeedsJson        Json?             @map("likely_needs_json")
+  buyingTriggersJson     Json?             @map("buying_triggers_json")
+  painPointsJson         Json?             @map("pain_points_json")
+  preferredChannelsJson  Json?             @map("preferred_channels_json")
+  messagingAnglesJson    Json?             @map("messaging_angles_json")
+  qualificationRulesJson Json?             @map("qualification_rules_json")
+  // Session 55 (2026-09-09): who the workspace does NOT sell to. Added to the
+  // domain type and the screen first; without a column the screen saved, the
+  // API answered 200, and the value evaporated on the substrate we ship on.
+  exclusionsJson         Json?             @map("exclusions_json")
+  confidenceScore        Float             @default(0) @map("confidence_score")
+  status                 ICPStatus         @default(suggested)
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+  workspace              Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  businessProfile        BusinessProfile   @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  campaigns              Campaign[]
+  leads                  Lead[]
+
+  @@index([workspaceId])
+  @@index([businessProfileId])
+  @@index([workspaceId, status])
+  @@map("icps")
+}
+
+model Campaign {
+  id                   String              @id @default(cuid())
+  workspaceId          String              @map("workspace_id")
+  businessProfileId    String              @map("business_profile_id")
+  icpId                String              @map("icp_id")
+  name                 String
+  goal                 String?
+  targetRegionJson     Json?               @map("target_region_json")
+  productFocusJson     Json?               @map("product_focus_json")
+  offer                String?
+  selectedChannelsJson Json?               @map("selected_channels_json")
+  dailyOutreachLimit   Int                 @default(20) @map("daily_outreach_limit")
+  leadGoal             Int                 @default(50) @map("lead_goal")
+  planJson             Json?               @map("plan_json")
+  status               CampaignStatus      @default(draft)
+  approvalStatus       ApprovalStatus      @default(needs_review) @map("approval_status")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+  workspace            Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  businessProfile      BusinessProfile     @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  icp                  ICP                 @relation(fields: [icpId], references: [id], onDelete: Cascade)
+  leads                Lead[]
+  leadEnrichmentRuns   LeadEnrichmentRun[]
+  messageTemplates     MessageTemplate[]
+  outreachActivities   OutreachActivity[]
+  replies              Reply[]
+  campaignMetrics      CampaignMetric[]
+  campaignLearnings    CampaignLearning[]
+
+  @@index([workspaceId])
+  @@index([businessProfileId])
+  @@index([icpId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, approvalStatus])
+  @@map("campaigns")
+}
+
+model Lead {
+  id                  String               @id @default(cuid())
+  workspaceId         String               @map("workspace_id")
+  campaignId          String?              @map("campaign_id")
+  icpId               String?              @map("icp_id")
+  companyName         String?              @map("company_name")
+  contactName         String?              @map("contact_name")
+  contactRole         String?              @map("contact_role")
+  websiteUrl          String?              @map("website_url")
+  source              String?
+  sourceUrl           String?              @map("source_url")
+  sourceType          String?              @map("source_type")
+  linkedinUrl         String?              @map("linkedin_url")
+  instagramUrl        String?              @map("instagram_url")
+  facebookUrl         String?              @map("facebook_url")
+  email               String?
+  phone               String?
+  whatsappNumber      String?              @map("whatsapp_number")
+  country             String?
+  state               String?
+  city                String?
+  address             String?
+  buyerType           String?              @map("buyer_type")
+  industry            String?
+  companySizeBucket   CompanySizeBucket    @default(unknown) @map("company_size_bucket")
+  fitReason           String?              @map("fit_reason")
+  discoveredInfo      String?              @map("discovered_info")
+  personalizationNote String?              @map("personalization_note")
+  /// N4 (2026-09-18) — what this buyer has told us, in plain sentences.
+  /// Written after a conversation and read before the next one. Kept ON the
+  /// lead, where the owner can see and correct it, rather than in a private
+  /// store the AI alone can read.
+  conversationMemory  String?              @map("conversation_memory")
+  /// "ai" or "owner". An owner's correction is never overwritten by the AI.
+  conversationMemorySource String?         @map("conversation_memory_source")
+  conversationMemoryAt DateTime?           @map("conversation_memory_at")
+  /// N11 (2026-09-18) — which facts from the discovery checklist this buyer has
+  /// told us, and which have already been asked. Shaped
+  /// { "<factKey>": { value, answeredAt?, askedAt? } }.
+  /// Kept as JSON rather than its own table because it is read and written as a
+  /// whole, once per conversation, and never queried across leads.
+  discoveryStateJson   Json?               @map("discovery_state_json")
+  /// N12 — lines the owner added to this one lead's checklist.
+  discoveryExtrasJson  Json?               @map("discovery_extras_json")
+  leadScore           Int                  @default(0) @map("lead_score")
+  fitScore            Int                  @default(0) @map("fit_score")
+  needScore           Int                  @default(0) @map("need_score")
+  reachabilityScore   Int                  @default(0) @map("reachability_score")
+  timingScore         Int                  @default(0) @map("timing_score")
+  confidenceScore     Float                @default(0) @map("confidence_score")
+  qualificationStatus QualificationStatus  @default(unqualified) @map("qualification_status")
+  scoreReasonJson     Json?                @map("score_reason_json")
+  enrichmentResultJson Json?               @map("enrichment_result_json")
+  relevancyReason     String?              @map("relevancy_reason")
+  status              LeadStatus           @default(needs_review)
+  enrichmentStatus    EnrichmentStatus     @default(not_started) @map("enrichment_status")
+  reviewStatus        ReviewStatus         @default(pending) @map("review_status")
+  doNotContact        Boolean              @default(false) @map("do_not_contact")
+  consentStatus       String?              @map("consent_status")
+  assignedTo          String?              @map("assigned_to")
+  lastContactedAt     DateTime?            @map("last_contacted_at")
+  // CP-24 (2026-08-02): timestamp of the customer's LAST INBOUND message.
+  // Distinct from lastContactedAt (which = WE contacted THEM, outbound only).
+  // Drives the WhatsApp 24-hour customer-service window gate.
+  lastInboundAt       DateTime?            @map("last_inbound_at")
+  nextFollowUpAt      DateTime?            @map("next_follow_up_at")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  workspace           Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign            Campaign?            @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  icp                 ICP?                 @relation(fields: [icpId], references: [id], onDelete: SetNull)
+  enrichmentRuns      LeadEnrichmentRun[]
+  duplicateAsFirst    DuplicateCandidate[] @relation("DuplicateLeadOne")
+  duplicateAsSecond   DuplicateCandidate[] @relation("DuplicateLeadTwo")
+  interactions        Interaction[]
+  messageTemplates    MessageTemplate[]
+  outreachActivities  OutreachActivity[]
+  replies             Reply[]
+  /// 2026-07-21 (R1) — Stage 3 commercial relations.
+  orders              Order[]
+  quotes              Quote[]
+  /// Stage 6 / WP6-C (2026-07-30) — all phone/WhatsApp numbers for this lead.
+  phoneNumbers        LeadPhoneNumber[]
+  followUps           FollowUp[]
+  outcomeSignals      OutcomeSignal[]
+
+  @@index([workspaceId])
+  @@index([campaignId])
+  @@index([icpId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, reviewStatus])
+  @@index([workspaceId, enrichmentStatus])
+  @@index([workspaceId, qualificationStatus])
+  @@index([email])
+  @@index([phone])
+  @@index([whatsappNumber])
+  @@index([websiteUrl])
+  @@map("leads")
+}
+
+/// Stage 6 / WP6-C (2026-07-30) — all phone/WhatsApp numbers per lead. The
+/// Lead's flat phone/whatsappNumber fields stay as the PRIMARY; this table
+/// holds the full list so inbound lookup (findLeadByPhone) matches ANY number
+/// (6C-2 dedup-across-numbers), not just the primary.
+model LeadPhoneNumber {
+  id               String   @id @default(cuid())
+  workspaceId      String   @map("workspace_id")
+  leadId           String   @map("lead_id")
+  number           String
+  /// Digit-only normalized form — the match key for findLeadByPhone.
+  normalizedDigits String   @map("normalized_digits")
+  /// "whatsapp" | "phone" | "mobile" | "landline" | "other"
+  type             String
+  isPrimary        Boolean  @default(false) @map("is_primary")
+  label            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead             Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  /// One primary number per (lead, type). A (lead, number) is globally unique
+  /// so re-importing the same number doesn't duplicate it.
+  @@unique([leadId, normalizedDigits])
+  @@index([workspaceId])
+  @@index([normalizedDigits])
+  @@map("lead_phone_numbers")
+}
+
+model KnowledgeEntry {
+  id           String    @id @default(cuid())
+  workspaceId  String    @map("workspace_id")
+  questionId   String    @map("question_id")
+  questionText String    @map("question_text")
+  answer       String
+  domain       String
+  confidence   Float     @default(1.0)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, questionId])
+  @@index([workspaceId])
+  @@index([workspaceId, domain])
+  @@map("knowledge_entries")
+}
+
+model Interaction {
+  id             String              @id @default(cuid())
+  workspaceId    String              @map("workspace_id")
+  leadId         String              @map("lead_id")
+  role           String
+  channel        String
+  content        String
+  timestamp      DateTime            @default(now())
+  needsHumanHelp Boolean             @default(false) @map("needs_human_help")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead           Lead                @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  fallbackTasks  HumanFallbackTask[]
+
+  @@index([workspaceId])
+  @@index([leadId])
+  @@index([workspaceId, channel])
+  @@index([workspaceId, needsHumanHelp])
+  @@map("interactions")
+}
+
+model HumanFallbackTask {
+  id            String      @id @default(cuid())
+  workspaceId   String      @map("workspace_id")
+  interactionId String      @map("interaction_id")
+  prospectQuery String      @map("prospect_query")
+  status        String      @default("PENDING")
+  /// 2026-07-21 (R1) — when converted to a Ticket, references it.
+  convertedToTicketId String? @map("converted_to_ticket_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  resolvedAt    DateTime?   @map("resolved_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  interaction   Interaction @relation(fields: [interactionId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([interactionId])
+  @@index([workspaceId, status])
+  @@map("human_fallback_tasks")
+}
+
+model LeadEnrichmentRun {
+  id             String           @id @default(cuid())
+  workspaceId    String           @map("workspace_id")
+  leadId         String           @map("lead_id")
+  campaignId     String?          @map("campaign_id")
+  provider       String
+  status         EnrichmentStatus @default(pending)
+  inputJson      Json?            @map("input_json")
+  outputJson     Json?            @map("output_json")
+  confidenceJson Json?            @map("confidence_json")
+  errorMessage   String?          @map("error_message")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  workspace      Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead           Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  campaign       Campaign?        @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([leadId])
+  @@index([campaignId])
+  @@index([workspaceId, status])
+  @@map("lead_enrichment_runs")
+}
+
+model DuplicateCandidate {
+  id              String          @id @default(cuid())
+  workspaceId     String          @map("workspace_id")
+  leadId1         String          @map("lead_id_1")
+  leadId2         String          @map("lead_id_2")
+  duplicateReason String          @map("duplicate_reason")
+  confidenceScore Float           @default(0) @map("confidence_score")
+  status          DuplicateStatus @default(pending)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead1           Lead            @relation("DuplicateLeadOne", fields: [leadId1], references: [id], onDelete: Cascade)
+  lead2           Lead            @relation("DuplicateLeadTwo", fields: [leadId2], references: [id], onDelete: Cascade)
+
+  @@unique([leadId1, leadId2])
+  @@index([workspaceId])
+  @@index([leadId1])
+  @@index([leadId2])
+  @@index([workspaceId, status])
+  @@map("duplicate_candidates")
+}
+
+model MessageTemplate {
+  id                      String                @id @default(cuid())
+  workspaceId             String                @map("workspace_id")
+  campaignId              String                @map("campaign_id")
+  leadId                  String?               @map("lead_id")
+  channel                 String
+  subject                 String?
+  body                    String
+  tone                    String?
+  language                String?
+  status                  MessageTemplateStatus @default(draft)
+  personalizationUsedJson Json?                 @map("personalization_used_json")
+  createdAt               DateTime              @default(now()) @map("created_at")
+  updatedAt               DateTime              @updatedAt @map("updated_at")
+  workspace               Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign                Campaign              @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  lead                    Lead?                 @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  outreachActivities      OutreachActivity[]
+
+  @@index([workspaceId])
+  @@index([campaignId])
+  @@index([leadId])
+  @@index([workspaceId, status])
+  @@map("message_templates")
+}
+
+model OutreachActivity {
+  id                String            @id @default(cuid())
+  workspaceId       String            @map("workspace_id")
+  campaignId        String?           @map("campaign_id")
+  leadId            String            @map("lead_id")
+  channel           String
+  messageTemplateId String?           @map("message_template_id")
+  direction         OutreachDirection
+  status            OutreachStatus    @default(drafted)
+  sentManually      Boolean           @default(true) @map("sent_manually")
+  body              String?
+  subject           String?
+  mediaAttachmentId String?           @map("media_attachment_id")
+  mediaAttachmentUrl String?          @map("media_attachment_url")
+  mediaAttachmentName String?         @map("media_attachment_name")
+  activityAt        DateTime          @default(now()) @map("activity_at")
+  createdBy         String?           @map("created_by")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign          Campaign?         @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  lead              Lead              @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  messageTemplate   MessageTemplate?  @relation(fields: [messageTemplateId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([campaignId])
+  @@index([leadId])
+  @@index([messageTemplateId])
+  @@index([workspaceId, status])
+  @@map("outreach_activities")
+}
+
+model Reply {
+  id                  String    @id @default(cuid())
+  workspaceId         String    @map("workspace_id")
+  campaignId          String?   @map("campaign_id")
+  // N-DATA-19 (2026-08-25, audit A-7): NULLABLE, and it has to be. An inbound
+  // WhatsApp message from a number we have never seen has no lead to attach
+  // to - that is the ordinary case, not an edge case - and the product
+  // deliberately writes no lead id rather than the fake
+  // "unmatched_whatsapp_lead" it used to write, because those rows survived
+  // erasure. JSON accepted the absence (a file does not check); Postgres
+  // refused the whole create, so EVERY inbound from an unknown number was a
+  // 500 on the substrate we ship on, and the reply that is supposed to be
+  // recorded "always, no silent drops" was silently dropped.
+  leadId              String?   @map("lead_id")
+  channel             String
+  rawText             String    @map("raw_text")
+  classification      String?
+  confidenceScore     Float?    @map("confidence_score")
+  summary             String?
+  suggestedNextAction String?   @map("suggested_next_action")
+  suggestedResponse   String?   @map("suggested_response")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign            Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  lead                Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([campaignId])
+  @@index([leadId])
+  @@index([classification])
+  @@map("replies")
+}
+
+model CampaignMetric {
+  id           String    @id @default(cuid())
+  workspaceId  String    @map("workspace_id")
+  campaignId   String    @map("campaign_id")
+  metricName   String    @map("metric_name")
+  metricValue  Float     @map("metric_value")
+  calculatedAt DateTime  @default(now()) @map("calculated_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign     Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, metricName, calculatedAt])
+  @@index([workspaceId])
+  @@index([campaignId])
+  @@map("campaign_metrics")
+}
+
+model CampaignLearning {
+  id                       String    @id @default(cuid())
+  workspaceId              String    @map("workspace_id")
+  campaignId               String    @map("campaign_id")
+  summary                  String
+  winningPatternsJson      Json?     @map("winning_patterns_json")
+  losingPatternsJson       Json?     @map("losing_patterns_json")
+  recommendedNextStepsJson Json?     @map("recommended_next_steps_json")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
+  workspace                Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign                 Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([campaignId])
+  @@map("campaign_learnings")
+}
+
+model Integration {
+  id                   String            @id @default(cuid())
+  workspaceId          String            @map("workspace_id")
+  provider             WebhookProvider
+  status               IntegrationStatus @default(not_connected)
+  authType             String?           @map("auth_type")
+  encryptedCredentials String?           @map("encrypted_credentials")
+  configJson           Json?             @map("config_json")
+  lastConnectedAt      DateTime?         @map("last_connected_at")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+  workspace            Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  providerAccounts     ProviderAccount[]
+
+  @@unique([workspaceId, provider])
+  @@index([workspaceId])
+  @@map("integrations")
+}
+
+model AgentRun {
+  id           String         @id @default(cuid())
+  workspaceId  String         @map("workspace_id")
+  agentName    String         @map("agent_name")
+  inputJson    Json?          @map("input_json")
+  outputJson   Json?          @map("output_json")
+  status       AgentRunStatus
+  errorMessage String?        @map("error_message")
+  startedAt    DateTime?      @map("started_at")
+  completedAt  DateTime?      @map("completed_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  workspace    Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, agentName])
+  @@index([workspaceId, status])
+  @@map("agent_runs")
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  workspaceId String    @map("workspace_id")
+  actorUserId String?   @map("actor_user_id")
+  eventType   String    @map("event_type")
+  entityType  String?   @map("entity_type")
+  entityId    String?   @map("entity_id")
+  payloadJson Json?     @map("payload_json")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, eventType])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+model WebhookEvent {
+  id          String          @id @default(cuid())
+  workspaceId String          @map("workspace_id")
+  provider    WebhookProvider
+  eventType   String          @map("event_type")
+  payloadJson Json            @map("payload_json")
+  processed   Boolean         @default(false)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, provider])
+  @@index([workspaceId, processed])
+  @@map("webhook_events")
+}
+
+/// Inbound message-id dedup log. Stops Meta's duplicate webhook deliveries
+/// from creating duplicate leads / replies / tickets / DNC registrations.
+/// Stage 6 / 2026-07-30 (audit I-6): persisted in BOTH JSON and Prisma modes.
+/// Previously Prisma's readAll/mutateAll silently dropped this collection,
+/// so production dedup was inactive (the service logged a WARNING).
+model ProcessedWebhookMessage {
+  id               String   @id @default(cuid())
+  workspaceId      String   @map("workspace_id")
+  /// Meta's message.id — the dedup key (globally unique per Meta).
+  providerMessageId String  @map("provider_message_id")
+  fromPhone        String?  @map("from_phone")
+  processedAt      DateTime @map("processed_at")
+  /// "processed" | "ignored" | "blocked" | "duplicate_skipped"
+  outcome          String
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  /// The dedup key — one row per (workspace, message). Enforced at the DB
+  /// level so even a concurrent double-insert cannot create a duplicate.
+  @@unique([workspaceId, providerMessageId])
+  @@index([workspaceId])
+  @@map("processed_webhook_messages")
+}
+
+model ProviderAccount {
+  id                String                @id @default(cuid())
+  workspaceId       String                @map("workspace_id")
+  integrationId     String?               @map("integration_id")
+  provider          WebhookProvider
+  accountIdentifier String?               @map("account_identifier")
+  email             String?
+  phoneNumber       String?               @map("phone_number")
+  displayName       String?               @map("display_name")
+  status            ProviderAccountStatus @default(active)
+  dailyLimit        Int?                  @map("daily_limit")
+  usedToday         Int                   @default(0) @map("used_today")
+  configJson        Json?                 @map("config_json")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+  workspace         Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  integration       Integration?          @relation(fields: [integrationId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, provider, accountIdentifier])
+  @@index([workspaceId])
+  @@index([integrationId])
+  @@index([workspaceId, provider])
+  @@index([workspaceId, status])
+  @@map("provider_accounts")
+}
+
+model WhatsAppTemplate {
+  id                 String                 @id @default(cuid())
+  workspaceId        String                 @map("workspace_id")
+  providerTemplateId String?                @map("provider_template_id")
+  name               String
+  language           String
+  category           String?
+  status             WhatsAppTemplateStatus @default(draft)
+  body               String
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+  workspace          Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, name, language])
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@map("whatsapp_templates")
+}
+
+model EventLog {
+  id           String    @id @default(cuid())
+  workspaceId  String    @map("workspace_id")
+  eventType    String    @map("event_type")
+  entityType   String?   @map("entity_type")
+  entityId     String?   @map("entity_id")
+  payloadJson  Json?     @map("payload_json")
+  metadataJson Json?     @map("metadata_json")
+  status       String    @default("recorded")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, eventType])
+  @@index([entityType, entityId])
+  @@map("event_logs")
+}
+
+model JobRun {
+  id           String    @id @default(cuid())
+  workspaceId  String    @map("workspace_id")
+  jobType      String    @map("job_type")
+  status       String
+  payloadJson  Json?     @map("payload_json")
+  resultJson   Json?     @map("result_json")
+  attempts     Int       @default(0)
+  maxAttempts  Int       @default(3) @map("max_attempts")
+  errorMessage String?   @map("error_message")
+  startedAt    DateTime? @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, jobType])
+  @@index([workspaceId, status])
+  @@map("job_runs")
+}
+
+model AgentBehaviorPolicy {
+  id          String     @id @default(cuid())
+  workspaceId String?    @map("workspace_id")
+  name        String
+  scope       String
+  version     String     @default("1")
+  policyJson  Json       @map("policy_json")
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([scope, isActive])
+  @@map("agent_behavior_policies")
+}
+
+model CompanyCommunicationSettings {
+  id                 String    @id @default(cuid())
+  workspaceId        String    @map("workspace_id")
+  language           String    @default("English")
+  tone               String    @default("professional_friendly")
+  brandVoice         String?   @map("brand_voice")
+  messageLength      String    @default("short") @map("message_length")
+  greeting           String    @default("Hello")
+  closing            String    @default("Thank you")
+  preferredWordsJson Json?     @map("preferred_words_json")
+  avoidedWordsJson   Json?     @map("avoided_words_json")
+  formalityLevel     String?   @map("formality_level")
+  emojiUsage         String    @default("minimal") @map("emoji_usage")
+  allowHinglish      Boolean   @default(false) @map("allow_hinglish")
+  customInstructions String?   @map("custom_instructions")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  workspace          Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId])
+  @@index([workspaceId])
+  @@map("company_communication_settings")
+}
+
+model ConversationPolicy {
+  id                                  String    @id @default(cuid())
+  workspaceId                         String    @map("workspace_id")
+  channel                             String
+  policyJson                          Json      @map("policy_json")
+  sensitiveTopicsJson                 Json?     @map("sensitive_topics_json")
+  autoReplyAllowedCategoriesJson      Json?     @map("auto_reply_allowed_categories_json")
+  humanApprovalRequiredCategoriesJson Json?     @map("human_approval_required_categories_json")
+  createdAt                           DateTime  @default(now()) @map("created_at")
+  updatedAt                           DateTime  @updatedAt @map("updated_at")
+  workspace                           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, channel])
+  @@map("conversation_policies")
+}
+
+model WhatsAppAgentSettings {
+  id                            String    @id @default(cuid())
+  workspaceId                   String    @map("workspace_id")
+  enabled                       Boolean   @default(false)
+  mode                          String    @default("draft_only")
+  defaultLanguage               String    @default("English") @map("default_language")
+  maxAutoRepliesPerConversation Int       @default(3) @map("max_auto_replies_per_conversation")
+  businessHoursJson             Json?     @map("business_hours_json")
+  escalationContactName         String?   @map("escalation_contact_name")
+  escalationContactPhone        String?   @map("escalation_contact_phone")
+  escalationContactEmail        String?   @map("escalation_contact_email")
+  unknownAnswerBehavior         String    @default("hold_for_review") @map("unknown_answer_behavior")
+  abusiveMessageBehavior        String    @default("escalate") @map("abusive_message_behavior")
+  priceQuestionBehavior         String    @default("ask_quantity_or_escalate") @map("price_question_behavior")
+  /// 2026-09-23 — these three existed on the domain type and in the JSON store
+  /// since CP-22/CP-23 (2026-08-02) and had NO column here. On Postgres the
+  /// owner's choice was dropped on every save and read back as off.
+  autoAcknowledgeSensitive      Boolean   @default(false) @map("auto_acknowledge_sensitive")
+  acknowledgementTemplate       String?   @map("acknowledgement_template")
+  messageBatchingEnabled        Boolean   @default(false) @map("message_batching_enabled")
+  /// D-2026-09-27-b — kinds of question the AI may answer by itself.
+  autoReplyTopics               String[]  @default([]) @map("auto_reply_topics")
+  /// 2026-09-28 — kinds the system switched off after a bad result.
+  autoReplyPausedJson           Json?     @map("auto_reply_paused_json")
+  /// N12 — the owner's buyer checklist: spine + per-buyer-type segments.
+  discoveryChecklistJson        Json?     @map("discovery_checklist_json")
+  createdAt                     DateTime  @default(now()) @map("created_at")
+  updatedAt                     DateTime  @updatedAt @map("updated_at")
+  workspace                     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId])
+  @@index([workspaceId])
+  @@map("whatsapp_agent_settings")
+}
+
+model EscalationRule {
+  id            String    @id @default(cuid())
+  workspaceId   String    @map("workspace_id")
+  channel       String
+  triggerType   String    @map("trigger_type")
+  conditionJson Json?     @map("condition_json")
+  actionJson    Json?     @map("action_json")
+  priority      Int       @default(100)
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, channel])
+  @@map("escalation_rules")
+}
+
+model UnknownQuestion {
+  id              String    @id @default(cuid())
+  workspaceId     String    @map("workspace_id")
+  leadId          String?   @map("lead_id")
+  conversationId  String?   @map("conversation_id")
+  channel         String
+  questionText    String    @map("question_text")
+  missingTopic    String?   @map("missing_topic")
+  status          String    @default("open")
+  suggestedAnswer String?   @map("suggested_answer")
+  finalAnswer     String?   @map("final_answer")
+  // M3.x / 2026-07-20 parity: 7 fields previously dropped silently.
+  generatedBy        String?  @map("generated_by")
+  relatedDomain      String?  @map("related_domain")
+  relatedQuestionKey String?  @map("related_question_key")
+  conflictSourcesJson Json?   @map("conflict_sources_json")
+  sourceIdsJson      Json?    @map("source_ids_json")
+  sourceDocumentId   String?  @map("source_document_id")
+  priority           String?  @map("priority")
+  /// 2026-07-21 (R1) — when converted to a Ticket, references it.
+  convertedToTicketId String? @map("converted_to_ticket_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([leadId])
+  @@map("unknown_questions")
+}
+
+/// Stage 2 (2026-07-20) — Customer Ticket.
+model Ticket {
+  id              String   @id @default(cuid())
+  workspaceId     String   @map("workspace_id")
+  ticketNumber    Int      @default(0) @map("ticket_number")
+  leadId          String?  @map("lead_id")
+  replyId         String?  @map("reply_id")
+  conversationId  String?  @map("conversation_id")
+  /// N-P1-2 (2026-08-07) — the order/quote this ticket complains about, if any.
+  orderId         String?  @map("order_id")
+  quoteId         String?  @map("quote_id")
+  sourceChannel   String   @map("source_channel")
+  type            String
+  priority        String
+  status          String   @default("open")
+  subject         String
+  description     String
+  resolution      String?
+  assignedTo      String?  @map("assigned_to")
+  /// 2026-07-21 (R1) — session-8 source linkage for converted tickets.
+  sourceEntityType String? @map("source_entity_type")
+  sourceEntityId   String? @map("source_entity_id")
+  slaStartedAt    DateTime @map("sla_started_at")
+  slaDueAt        DateTime @map("sla_due_at")
+  slaBreached     Boolean  @default(false) @map("sla_breached")
+  firstRespondedAt DateTime? @map("first_responded_at")
+  resolvedAt      DateTime? @map("resolved_at")
+  closedAt        DateTime? @map("closed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, ticketNumber])
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, priority])
+  @@index([leadId])
+  @@index([orderId])
+  @@index([quoteId])
+  @@index([workspaceId, slaBreached])
+  @@map("tickets")
+}
+
+model TicketEvent {
+  id           String   @id @default(cuid())
+  ticketId     String   @map("ticket_id")
+  workspaceId  String   @map("workspace_id")
+  eventType    String   @map("event_type")
+  fromStatus   String?  @map("from_status")
+  toStatus     String?  @map("to_status")
+  actorUserId  String?  @map("actor_user_id")
+  actorType    String   @map("actor_type")
+  note         String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([workspaceId])
+  @@map("ticket_events")
+}
+
+model TicketSlaSettings {
+  id                   String   @id @default(cuid())
+  workspaceId          String   @unique @map("workspace_id")
+  clockMode            String   @default("business_hours") @map("clock_mode")
+  businessHoursStart   String   @default("09:00") @map("business_hours_start")
+  businessHoursEnd     String   @default("18:00") @map("business_hours_end")
+  businessDaysJson     Json?    @map("business_days_json")
+  /// 2026-09-28 (M10) — closed dates (holidays): [{ date: "YYYY-MM-DD", label? }].
+  closedDatesJson      Json?    @map("closed_dates_json")
+  /// 2026-09-30 — the company's festival rules (FestivalCalendarService).
+  festivalRulesJson    Json?    @map("festival_rules_json")
+  /// 2026-09-28 (M9) — defaults in WORKING minutes (9-hour day): 4 h, 1 day, 3 days, 6 days.
+  urgentSlaMinutes     Int      @default(240) @map("urgent_sla_minutes")
+  highSlaMinutes       Int      @default(540) @map("high_sla_minutes")
+  mediumSlaMinutes     Int      @default(1620) @map("medium_sla_minutes")
+  lowSlaMinutes        Int      @default(3240) @map("low_sla_minutes")
+  /// Stage A.1 (2026-07-26) — Assignment-mode fields (Batch 1 Q3). Were in the
+  /// JSON type + runtime since session 8 but missing from the Prisma schema.
+  /// assignmentMode: "manual" | "auto_rule" | "round_robin" (default manual).
+  assignmentMode       String   @default("manual") @map("assignment_mode")
+  /// Rules used when assignmentMode="auto_rule". JSON-encoded array.
+  assignmentRulesJson  Json?    @map("assignment_rules_json")
+  /// Pointer into the active-staff rotation when assignmentMode="round_robin".
+  roundRobinPointer    Int      @default(0) @map("round_robin_pointer")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("ticket_sla_settings")
+}
+
+model AutoReplyLog {
+  id                   String    @id @default(cuid())
+  workspaceId          String    @map("workspace_id")
+  leadId               String?   @map("lead_id")
+  replyId              String?   @map("reply_id")
+  channel              String
+  incomingMessage      String    @map("incoming_message")
+  retrievedContextJson Json?     @map("retrieved_context_json")
+  classification       String?
+  generatedReply       String?   @map("generated_reply")
+  confidenceScore      Float?    @map("confidence_score")
+  canAutoSend          Boolean   @default(false) @map("can_auto_send")
+  needsHumanReview     Boolean   @default(true) @map("needs_human_review")
+  reason               String?
+  modelProvider        String?   @map("model_provider")
+  modelName            String?   @map("model_name")
+  modelMode            String?   @map("model_mode")
+  fallbackUsed         Boolean   @default(false) @map("fallback_used")
+  validationStatus     String?   @map("validation_status")
+  sendAttempted        Boolean   @default(false) @map("send_attempted")
+  sendStatus           String?   @map("send_status")
+  providerMessageId    String?   @map("provider_message_id")
+  providerError        String?   @map("provider_error")
+  mediaAttachmentId    String?   @map("media_attachment_id")
+  mediaAttachmentUrl   String?   @map("media_attachment_url")
+  mediaAttachmentName  String?   @map("media_attachment_name")
+  status               String    @default("drafted")
+  // 2026-08-05 (UX Fix 1) — operator's internal note (not customer-facing)
+  internalNote         String?   @map("internal_note")
+  /// 2026-09-23 — CP-22's "holding message sent" flag. On the type and passed
+  /// by the WhatsApp engine since 2026-08-02, but stored by NEITHER substrate:
+  /// no column here, and the JSON writer never named it either.
+  acknowledgementSent  Boolean   @default(false) @map("acknowledgement_sent")
+  /// N5 — the AI's original draft, kept when the owner edited before approving.
+  aiDraft              String?   @map("ai_draft")
+  ownerEdited          Boolean   @default(false) @map("owner_edited")
+  /// 2026-09-28 — the owner's verdict on a reply the AI sent by itself.
+  ownerVerdict         String?   @map("owner_verdict")
+  ownerVerdictAt       DateTime? @map("owner_verdict_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([leadId])
+  @@map("auto_reply_logs")
+}
+
+model MediaCatalogItem {
+  id          String    @id @default(cuid())
+  workspaceId String    @map("workspace_id")
+  title       String
+  category    String    @default("other")
+  fileName    String    @map("file_name")
+  fileType    String    @map("file_type")
+  fileSize    Int       @default(0) @map("file_size")
+  url         String
+  storagePath String    @map("storage_path")
+  // 2026-09-10 (session 55): the bytes live HERE, not on the container's disk.
+  // The old code wrote uploads to public/uploads inside the running container.
+  // That directory is not a disk: every deploy and every free-tier spin-down
+  // replaced the container, so the file vanished while this row survived,
+  // pointing `url` at a 404 -- and WhatsApp sends hand Meta a LINK it has to
+  // fetch, so the photo silently failed to send too. Base64 in a TEXT column
+  // keeps the file wherever the database is, which is the only durable store
+  // this deployment actually has. Never selected by the list/export queries.
+  contentBase64 String? @map("content_base64")
+  caption     String?
+  leadId      String?   @map("lead_id")
+  status      String    @default("active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, category])
+  @@index([leadId])
+  @@map("media_catalog_items")
+}
+
+model KnowledgeBaseDocument {
+  id           String               @id @default(cuid())
+  workspaceId  String               @map("workspace_id")
+  title        String
+  documentType String               @map("document_type")
+  source       String?
+  status       String               @default("active")
+  contentText  String               @map("content_text")
+  metadataJson Json?                @map("metadata_json")
+  createdAt    DateTime             @default(now()) @map("created_at")
+  updatedAt    DateTime             @updatedAt @map("updated_at")
+  workspace    Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  chunks       KnowledgeBaseChunk[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, documentType])
+  @@index([workspaceId, status])
+  @@map("knowledge_base_documents")
+}
+
+model KnowledgeBaseChunk {
+  id            String                @id @default(cuid())
+  workspaceId   String                @map("workspace_id")
+  documentId    String                @map("document_id")
+  chunkIndex    Int                   @map("chunk_index")
+  chunkText     String                @map("chunk_text")
+  embeddingJson Json?                 @map("embedding_json")
+  metadataJson  Json?                 @map("metadata_json")
+  createdAt     DateTime              @default(now()) @map("created_at")
+  updatedAt     DateTime              @updatedAt @map("updated_at")
+  workspace     Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  document      KnowledgeBaseDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([documentId])
+  @@map("knowledge_base_chunks")
+}
+
+model KnowledgeBaseQueryLog {
+  id                  String    @id @default(cuid())
+  workspaceId         String    @map("workspace_id")
+  queryText           String    @map("query_text")
+  retrievedChunksJson Json?     @map("retrieved_chunks_json")
+  answerUsed          Boolean   @default(false) @map("answer_used")
+  confidenceScore     Float?    @map("confidence_score")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("knowledge_base_query_logs")
+}
+
+model LLMProviderCredential {
+  id              String    @id @default(cuid())
+  workspaceId     String    @map("workspace_id")
+  provider        String
+  displayName     String?   @map("display_name")
+  encryptedApiKey String?   @map("encrypted_api_key")
+  status          String    @default("not_connected")
+  configJson      Json?     @map("config_json")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, provider])
+  @@map("llm_provider_credentials")
+}
+
+model LLMModelRouting {
+  id                String    @id @default(cuid())
+  workspaceId       String    @map("workspace_id")
+  taskName          String    @map("task_name")
+  provider          String
+  modelName         String?   @map("model_name")
+  modelTier         String    @map("model_tier")
+  isEnabled         Boolean   @default(true) @map("is_enabled")
+  fallbackProvider  String?   @map("fallback_provider")
+  fallbackModelName String?   @map("fallback_model_name")
+  configJson        Json?     @map("config_json")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, taskName])
+  @@map("llm_model_routing")
+}
+
+model AIUsageLimit {
+  id                   String    @id @default(cuid())
+  workspaceId          String    @map("workspace_id")
+  dailyTokenLimit      Int?      @map("daily_token_limit")
+  monthlyTokenLimit    Int?      @map("monthly_token_limit")
+  dailyCostLimit       Float?    @map("daily_cost_limit")
+  monthlyCostLimit     Float?    @map("monthly_cost_limit")
+  currentDailyTokens   Int       @default(0) @map("current_daily_tokens")
+  currentMonthlyTokens Int       @default(0) @map("current_monthly_tokens")
+  currentDailyCost     Float     @default(0) @map("current_daily_cost")
+  currentMonthlyCost   Float     @default(0) @map("current_monthly_cost")
+  resetAt              DateTime? @map("reset_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("ai_usage_limits")
+}
+
+model WebsiteCrawlConsent {
+  id                 String    @id @default(cuid())
+  workspaceId        String    @map("workspace_id")
+  websiteUrl         String    @map("website_url")
+  consentGiven       Boolean   @default(false) @map("consent_given")
+  consentGivenAt     DateTime? @map("consent_given_at")
+  consentTextVersion String    @default("v1") @map("consent_text_version")
+  userId             String?   @map("user_id")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  workspace          Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, websiteUrl])
+  @@map("website_crawl_consents")
+}
+
+model ProductKnowledge {
+  id              String                        @id @default(cuid())
+  workspaceId     String                        @map("workspace_id")
+  productName     String                        @map("product_name")
+  productCategory String?                       @map("product_category")
+  description     String?
+  source          String
+  confidenceScore Float                         @default(0.7) @map("confidence_score")
+  createdAt       DateTime                      @default(now()) @map("created_at")
+  updatedAt       DateTime                      @updatedAt @map("updated_at")
+  workspace       Workspace                     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  varieties       ProductVariety[]
+  applications    ProductApplication[]
+  marketMaps      ProductApplicationMarketMap[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, productName])
+  @@map("product_knowledges")
+}
+
+model ProductVariety {
+  id                 String                        @id @default(cuid())
+  workspaceId        String                        @map("workspace_id")
+  productKnowledgeId String                        @map("product_knowledge_id")
+  name               String
+  description        String?
+  useCasesJson       Json?                         @map("use_cases_json")
+  buyerTypesJson     Json?                         @map("buyer_types_json")
+  confidenceScore    Float                         @default(0.7) @map("confidence_score")
+  createdAt          DateTime                      @default(now()) @map("created_at")
+  updatedAt          DateTime                      @updatedAt @map("updated_at")
+  workspace          Workspace                     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  productKnowledge   ProductKnowledge              @relation(fields: [productKnowledgeId], references: [id], onDelete: Cascade)
+  applications       ProductApplication[]
+  marketMaps         ProductApplicationMarketMap[]
+
+  @@index([workspaceId])
+  @@index([productKnowledgeId])
+  @@map("product_varieties")
+}
+
+model ProductApplication {
+  id                  String                        @id @default(cuid())
+  workspaceId         String                        @map("workspace_id")
+  productKnowledgeId  String                        @map("product_knowledge_id")
+  varietyId           String?                       @map("variety_id")
+  applicationName     String                        @map("application_name")
+  industry            String?
+  description         String?
+  exampleProductsJson Json?                         @map("example_products_json")
+  buyerTypesJson      Json?                         @map("buyer_types_json")
+  seasonalityJson     Json?                         @map("seasonality_json")
+  confidenceScore     Float                         @default(0.7) @map("confidence_score")
+  createdAt           DateTime                      @default(now()) @map("created_at")
+  updatedAt           DateTime                      @updatedAt @map("updated_at")
+  workspace           Workspace                     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  productKnowledge    ProductKnowledge              @relation(fields: [productKnowledgeId], references: [id], onDelete: Cascade)
+  variety             ProductVariety?               @relation(fields: [varietyId], references: [id], onDelete: SetNull)
+  marketMaps          ProductApplicationMarketMap[]
+
+  @@index([workspaceId])
+  @@index([productKnowledgeId])
+  @@index([varietyId])
+  @@map("product_applications")
+}
+
+model BuyerSegment {
+  id                       String                        @id @default(cuid())
+  workspaceId              String                        @map("workspace_id")
+  name                     String
+  segmentType              String                        @map("segment_type")
+  description              String?
+  needsJson                Json?                         @map("needs_json")
+  buyingCriteriaJson       Json?                         @map("buying_criteria_json")
+  preferredChannelsJson    Json?                         @map("preferred_channels_json")
+  qualificationSignalsJson Json?                         @map("qualification_signals_json")
+  badFitSignalsJson        Json?                         @map("bad_fit_signals_json")
+  createdAt                DateTime                      @default(now()) @map("created_at")
+  updatedAt                DateTime                      @updatedAt @map("updated_at")
+  workspace                Workspace                     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  marketMaps               ProductApplicationMarketMap[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, segmentType])
+  @@map("buyer_segments")
+}
+
+model ProductApplicationMarketMap {
+  id                 String             @id @default(cuid())
+  workspaceId        String             @map("workspace_id")
+  productKnowledgeId String             @map("product_knowledge_id")
+  varietyId          String?            @map("variety_id")
+  applicationId      String             @map("application_id")
+  buyerSegmentId     String             @map("buyer_segment_id")
+  targetingAngle     String             @map("targeting_angle")
+  messageAngle       String             @map("message_angle")
+  searchQueriesJson  Json?              @map("search_queries_json")
+  leadSourcesJson    Json?              @map("lead_sources_json")
+  confidenceScore    Float              @default(0.7) @map("confidence_score")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  workspace          Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  productKnowledge   ProductKnowledge   @relation(fields: [productKnowledgeId], references: [id], onDelete: Cascade)
+  variety            ProductVariety?    @relation(fields: [varietyId], references: [id], onDelete: SetNull)
+  application        ProductApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  buyerSegment       BuyerSegment       @relation(fields: [buyerSegmentId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([productKnowledgeId])
+  @@index([applicationId])
+  @@index([buyerSegmentId])
+  @@map("product_application_market_maps")
+}
+
+model LeadReviewSettings {
+  id                           String    @id @default(cuid())
+  workspaceId                  String    @map("workspace_id")
+  mode                         String    @default("manual_review")
+  autoApproveThreshold         Float     @default(0.85) @map("auto_approve_threshold")
+  autoRejectThreshold          Float     @default(0.25) @map("auto_reject_threshold")
+  maxAutoApprovedPerDay        Int       @default(25) @map("max_auto_approved_per_day")
+  requireHumanForNewCampaigns  Boolean   @default(true) @map("require_human_for_new_campaigns")
+  requireHumanForNewIndustries Boolean   @default(true) @map("require_human_for_new_industries")
+  allowAutoEnrichment          Boolean   @default(false) @map("allow_auto_enrichment")
+  allowAutoOutreachPreparation Boolean   @default(true) @map("allow_auto_outreach_preparation")
+  allowAutoSend                Boolean   @default(false) @map("allow_auto_send")
+  auditEveryDecision           Boolean   @default(true) @map("audit_every_decision")
+  createdAt                    DateTime  @default(now()) @map("created_at")
+  updatedAt                    DateTime  @updatedAt @map("updated_at")
+  workspace                    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId])
+  @@index([workspaceId, mode])
+  @@map("lead_review_settings")
+}
+
+model LeadReviewDecision {
+  id                 String    @id @default(cuid())
+  workspaceId        String    @map("workspace_id")
+  leadId             String    @map("lead_id")
+  campaignId         String?   @map("campaign_id")
+  decision           String
+  confidenceScore    Float     @default(0.5) @map("confidence_score")
+  reason             String
+  matchedSignalsJson Json?     @map("matched_signals_json")
+  riskSignalsJson    Json?     @map("risk_signals_json")
+  suggestedNextStep  String?   @map("suggested_next_step")
+  modeUsed           String    @map("mode_used")
+  decidedBy          String    @map("decided_by")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  workspace          Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, leadId])
+  @@index([workspaceId, campaignId])
+  @@map("lead_review_decisions")
+}
+
+// ============================================================================
+// Phase 4A — Missing models for settings, auth, DNC, and knowledge answers.
+// These match the JSON-repository types 1:1 so PERSISTENCE_PROVIDER=prisma
+// works end-to-end without split-brain.
+// ============================================================================
+
+/// Stored authentication credentials (email + scrypt password hash).
+model UserCredential {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  workspaceId  String   @map("workspace_id")
+  email        String
+  passwordHash String   @map("password_hash")
+  provisional  Boolean?
+  /// Stage 5 / WP2 (2026-07-28) — bumped on password reset to invalidate all
+  /// existing sessions for this user. See docs/LOGIC.md 2026-07-28.
+  sessionVersion Int?    @default(1) @map("session_version")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, email])
+  @@index([workspaceId])
+  @@index([userId])
+  /// 2026-09-28 (S8): sign-in looks an email up across companies in one query.
+  @@index([email])
+  @@map("user_credentials")
+}
+
+/// Permanent do-not-contact registry (append-only, keyed by phone/email).
+model DoNotContactEntry {
+  id               String   @id @default(cuid())
+  workspaceId      String   @map("workspace_id")
+  normalizedPhone  String?  @map("normalized_phone")
+  normalizedEmail  String?  @map("normalized_email")
+  /// 2026-09-28 (L10) — a website's host ("shreezari.in"), so a company known
+  /// only by its website can be on the register.
+  normalizedDomain String?  @map("normalized_domain")
+  reason           String
+  sourceLeadId     String?  @map("source_lead_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, normalizedPhone])
+  @@index([workspaceId, normalizedEmail])
+  @@index([workspaceId, normalizedDomain])
+  @@map("do_not_contact_entries")
+}
+
+/// Knowledge-base question answers (the 523-question framework answers).
+model KnowledgeQuestionAnswer {
+  id                    String   @id @default(cuid())
+  workspaceId           String   @map("workspace_id")
+  domainKey             String   @map("domain_key")
+  questionKey           String   @map("question_key")
+  question              String
+  answer                String?
+  answerStatus          String   @map("answer_status")
+  sourceType            String   @map("source_type")
+  sourceId              String?  @map("source_id")
+  sourceTitle           String?  @map("source_title")
+  sourceUrl             String?  @map("source_url")
+  sourceFileName        String?  @map("source_file_name")
+  confidenceScore       Float    @default(0) @map("confidence_score")
+  usedByAgentsJson      Json     @map("used_by_agents_json")
+  mapsToJson            Json     @map("maps_to_json")
+  humanReviewRequired   Boolean  @default(false) @map("human_review_required")
+  sourceSnippet         String?  @map("source_snippet")
+  conflictWithExisting  Boolean? @map("conflict_with_existing")
+  conflictReason        String?  @map("conflict_reason")
+  reviewedByUser        String?  @map("reviewed_by_user")
+  reviewedAt            DateTime? @map("reviewed_at")
+  isUserApproved        Boolean? @map("is_user_approved")
+  isCanonical           Boolean? @map("is_canonical")
+  supersededByAnswerId  String?  @map("superseded_by_answer_id")
+  mergedFromAnswerIds   Json?    @map("merged_from_answer_ids")
+  evidenceJson          Json     @map("evidence_json")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  workspace             Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, questionKey])
+  @@index([workspaceId])
+  @@index([workspaceId, domainKey])
+  @@index([workspaceId, answerStatus])
+  @@map("knowledge_question_answers")
+}
+
+/// Phase 4C: Knowledge extraction run — tracks one full extraction pass over
+/// a source bundle (documents + website). Maps to KnowledgeExtractionRun type.
+model KnowledgeExtractionRun {
+  id                  String   @id @default(cuid())
+  workspaceId         String   @map("workspace_id")
+  sourceType          String   @map("source_type")
+  sourceId            String?  @map("source_id")
+  status              String   @default("pending")
+  totalQuestions      Int      @default(0) @map("total_questions")
+  processedQuestions  Int?     @map("processed_questions")
+  answeredCount       Int      @default(0) @map("answered_count")
+  unansweredCount     Int      @default(0) @map("unanswered_count")
+  partialCount        Int      @default(0) @map("partial_count")
+  conflictCount       Int      @default(0) @map("conflict_count")
+  failedBatchCount    Int?     @map("failed_batch_count")
+  totalBatches        Int?     @map("total_batches")
+  completedBatches    Int?     @map("completed_batches")
+  currentDomain       String?  @map("current_domain")
+  currentBatchIndex   Int?     @map("current_batch_index")
+  modelProvider       String?  @map("model_provider")
+  modelName           String?  @map("model_name")
+  fallbackUsed        Boolean? @map("fallback_used")
+  startedAt           DateTime? @map("started_at")
+  completedAt         DateTime? @map("completed_at")
+  errorMessage        String?  @map("error_message")
+  outputJson          Json     @default("{}") @map("output_json")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@map("knowledge_extraction_runs")
+}
+
+/// Phase 4C: Knowledge extraction batch — one domain-grouped batch within a run.
+/// Maps to KnowledgeExtractionBatch type.
+model KnowledgeExtractionBatch {
+  id               String   @id @default(cuid())
+  workspaceId      String   @map("workspace_id")
+  extractionRunId  String   @map("extraction_run_id")
+  documentId       String?  @map("document_id")
+  domainKey        String   @map("domain_key")
+  batchIndex       Int      @map("batch_index")
+  questionKeysJson Json     @default("{}") @map("question_keys_json")
+  status           String   @default("pending")
+  attemptCount     Int      @default(0) @map("attempt_count")
+  maxAttempts      Int      @default(2) @map("max_attempts")
+  modelProvider    String?  @map("model_provider")
+  modelName        String?  @map("model_name")
+  timeoutMs        Int      @default(60000) @map("timeout_ms")
+  errorMessage     String?  @map("error_message")
+  resultJson       Json     @default("{}") @map("result_json")
+  startedAt        DateTime? @map("started_at")
+  completedAt      DateTime? @map("completed_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([extractionRunId])
+  @@index([workspaceId, status])
+  @@map("knowledge_extraction_batches")
+}
+
+/// Phase 4C: Knowledge extraction source bundle — groups website + uploaded
+/// documents before question answering. Maps to KnowledgeExtractionSourceBundle.
+model KnowledgeExtractionSourceBundle {
+  id                        String   @id @default(cuid())
+  workspaceId               String   @map("workspace_id")
+  status                    String   @default("pending")
+  websiteUrl                String?  @map("website_url")
+  websiteCrawlJobId         String?  @map("website_crawl_job_id")
+  uploadedDocumentIdsJson   Json     @default("{}") @map("uploaded_document_ids_json")
+  sourceCount               Int      @default(0) @map("source_count")
+  combinedTextLength        Int      @default(0) @map("combined_text_length")
+  extractionRunId           String?  @map("extraction_run_id")
+  errorMessage              String?  @map("error_message")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+  workspace                 Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@map("knowledge_extraction_source_bundles")
+}
+
+/// Phase 4C: Knowledge extraction source — one individual source within a bundle
+/// (website page, uploaded file, pasted text). Maps to KnowledgeExtractionSource.
+model KnowledgeExtractionSource {
+  id             String   @id @default(cuid())
+  workspaceId    String   @map("workspace_id")
+  bundleId       String   @map("bundle_id")
+  sourceType     String   @map("source_type")
+  sourceTitle    String   @map("source_title")
+  sourceUrl      String?  @map("source_url")
+  sourceFileName String?  @map("source_file_name")
+  extractedText  String   @map("extracted_text")
+  metadataJson   Json     @default("{}") @map("metadata_json")
+  status         String   @default("pending")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([bundleId])
+  @@map("knowledge_extraction_sources")
+}
+
+/// Sales settings (MOQ, credit, payment rules, qualification thresholds).
+model SalesSettings {
+  id                         String   @id @default(cuid())
+  workspaceId                String   @map("workspace_id")
+  defaultMOQ                 String?  @map("default_moq")
+  productWiseMOQ             Json?    @map("product_wise_moq")
+  standardCreditPeriod       String?  @map("standard_credit_period")
+  maxCreditPeriod            String?  @map("max_credit_period")
+  advancePaymentRule         String?  @map("advance_payment_rule")
+  sampleAvailability         String?  @map("sample_availability")
+  quotationValidity          String?  @map("quotation_validity")
+  bulkOrderRule              String?  @map("bulk_order_rule")
+  leadQualificationThresholds String? @map("lead_qualification_thresholds")
+  humanReviewTriggers        String?  @map("human_review_triggers")
+  priceDiscussionRule        String?  @map("price_discussion_rule")
+  discountNegotiationRules   String?  @map("discount_negotiation_rules")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+  workspace                  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId])
+  @@map("sales_settings")
+}
+
+/// Policy settings (payment, shipping, returns, customization).
+model PolicySettings {
+  id                      String   @id @default(cuid())
+  workspaceId             String   @map("workspace_id")
+  paymentPolicy           String?  @map("payment_policy")
+  creditPolicy            String?  @map("credit_policy")
+  shippingDeliveryPolicy  String?  @map("shipping_delivery_policy")
+  returnReplacementPolicy String?  @map("return_replacement_policy")
+  cancellationPolicy      String?  @map("cancellation_policy")
+  customizationPolicy     String?  @map("customization_policy")
+  samplePolicy            String?  @map("sample_policy")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+  workspace               Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId])
+  @@map("policy_settings")
+}
+
+/// Communication settings (tone, reply rules, auto-reply topics).
+model CommunicationSettings {
+  id                       String   @id @default(cuid())
+  workspaceId              String   @map("workspace_id")
+  tone                     String?
+  defaultFallbackReply     String?  @map("default_fallback_reply")
+  allowedAutoReplyTopics   Json?    @map("allowed_auto_reply_topics")
+  humanReviewRequiredTopics Json?   @map("human_review_required_topics")
+  priceReplyRule           String?  @map("price_reply_rule")
+  creditPaymentReplyRule   String?  @map("credit_payment_reply_rule")
+  complaintReplyRule       String?  @map("complaint_reply_rule")
+  abusiveMessageRule       String?  @map("abusive_message_rule")
+  stopUnsubscribeBehavior  String?  @map("stop_unsubscribe_behavior")
+  unknownAnswerBehavior    String?  @map("unknown_answer_behavior")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+  workspace                Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId])
+  @@map("communication_settings")
+}
+
+/// Product settings (product catalog with specs).
+model ProductSettings {
+  id          String   @id @default(cuid())
+  workspaceId String   @map("workspace_id")
+  products    Json
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId])
+  @@map("product_settings")
+}
+
+/// Settings conflicts (extraction vs. existing — owner reviews before promoting).
+model SettingsConflict {
+  id              String   @id @default(cuid())
+  workspaceId     String   @map("workspace_id")
+  settingsArea    String   @map("settings_area")
+  fieldKey        String   @map("field_key")
+  existingValue   String?  @map("existing_value")
+  extractedValue  String?  @map("extracted_value")
+  customValue     String?  @map("custom_value")
+  extractedSource String   @map("extracted_source")
+  status          String   @default("open")
+  resolution      String?
+  resolutionReason String? @map("resolution_reason")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@map("settings_conflicts")
+}
+
+/// Pending settings drafts (extraction suggestions awaiting owner review).
+model PendingSettingsDraft {
+  id            String   @id @default(cuid())
+  workspaceId   String   @map("workspace_id")
+  kind          String
+  sourceGroupKey String? @map("source_group_key")
+  sourceTitle   String?  @map("source_title")
+  sourceTopic   String?  @map("source_topic")
+  sourceAnswer  String?  @map("source_answer")
+  products      Json?
+  sales         Json?
+  policy        Json?
+  communication Json?
+  fields        Json?
+  status        String   @default("pending")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@map("pending_settings_drafts")
+}
+
+/// Agent autonomous settings (manual/automatic toggles per workflow).
+model AgentAutonomousSettings {
+  id                  String   @id @default(cuid())
+  workspaceId         String   @map("workspace_id")
+  icpGeneratorMode    String   @default("manual") @map("icp_generator_mode")
+  campaignPlannerMode String   @default("manual") @map("campaign_planner_mode")
+  discoveryMode       String   @default("manual") @map("discovery_mode")
+  whatsappMode        String   @default("manual") @map("whatsapp_mode")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId])
+  @@map("agent_autonomous_settings")
+}
+
+// ===========================================================================
+// 2026-07-21 (R1) — Stage 3 Order + Quote models.
+// Per docs/LOGIC.md 2026-07-21:
+//   - Quote is optional; orders can be direct OR from_quote.
+//   - Conversion snapshots prices; new quotes supersede old.
+//   - Reorder pre-fills from a past order.
+//   - NO Invoice, NO tax computation — Tally/ERP's job.
+// ===========================================================================
+
+model Order {
+  id                     String   @id @default(cuid())
+  workspaceId            String   @map("workspace_id")
+  orderNumber            Int      @default(0) @map("order_number")
+  leadId                 String?  @map("lead_id")
+  quoteId                String?  @map("quote_id")
+  status                 String   @default("draft")
+  lineItemsJson          Json     @map("line_items_json")
+  grandTotal             Decimal  @db.Decimal(12, 2) @map("grand_total")
+  currencyCode           String   @default("INR") @map("currency_code")
+  origin                 String   @default("direct")
+  reorderedFromOrderId   String?  @map("reordered_from_order_id")
+  /// 2026-07-21 — conversation link (disputes).
+  sourceReplyId          String?  @map("source_reply_id")
+  sourceInteractionId    String?  @map("source_interaction_id")
+  /// 2026-07-21 — discount flag (informational).
+  discountGiven          Boolean? @default(false) @map("discount_given")
+  totalDiscountAmount    Decimal? @db.Decimal(12, 2) @map("total_discount_amount")
+  shippedQuantityByLine  Json?    @map("shipped_quantity_by_line")
+  /// Stage A (2026-07-26) — Per-line cancelled quantity when the order is
+  /// partially or fully cancelled. Keyed by OrderLineItem.id. Was missing
+  /// from the Prisma schema (Cluster C fix added it to the JSON runtime +
+  /// the Order type, but the schema column was never added). Pinned by
+  /// golden:prisma-commercial-parity.
+  cancelledQuantityByLineJson Json? @map("cancelled_quantity_by_line_json")
+  confirmedAt            DateTime? @map("confirmed_at")
+  shippedAt              DateTime? @map("shipped_at")
+  deliveredAt            DateTime? @map("delivered_at")
+  cancelledAt            DateTime? @map("cancelled_at")
+  cancelledBy            String?  @map("cancelled_by")
+  cancelReason           String?  @map("cancel_reason")
+  notes                  String?
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  workspace              Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead                   Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, orderNumber])
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([leadId])
+  @@index([quoteId])
+  @@map("orders")
+}
+
+model Quote {
+  id                String   @id @default(cuid())
+  workspaceId       String   @map("workspace_id")
+  quoteNumber       Int      @default(0) @map("quote_number")
+  leadId            String?  @map("lead_id")
+  orderId           String?  @map("order_id")
+  supersedesQuoteId String?  @map("supersedes_quote_id")
+  status            String   @default("draft")
+  lineItemsJson     Json     @map("line_items_json")
+  grandTotal        Decimal  @db.Decimal(12, 2) @map("grand_total")
+  currencyCode      String   @default("INR") @map("currency_code")
+  validityNote      String?  @map("validity_note")
+  sentAt            DateTime? @map("sent_at")
+  acceptedAt        DateTime? @map("accepted_at")
+  notes             String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead              Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, quoteNumber])
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([leadId])
+  @@map("quotes")
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Stage 5 / WP3 (2026-07-28) — Platform tickets (user → operator) + PlatformAdmin.
+// Deliberately NOT relation-coupled to Workspace/User: these are the operator's
+// records, shared across all workspaces. A Workspace.onDelete cascade must NOT
+// delete platform tickets (they're the operator's audit/support trail). So
+// workspaceId / raisedByUserId are plain strings, no FK. See docs/LOGIC.md.
+// ───────────────────────────────────────────────────────────────────────────
+
+enum PlatformTicketCategory {
+  bug
+  account
+  billing
+  how_to
+  data_request
+  other
+}
+
+enum PlatformTicketStatus {
+  open
+  in_progress
+  waiting_on_user
+  resolved
+  closed
+  reopened
+}
+
+enum PlatformTicketEventType {
+  created
+  status_changed
+  priority_changed
+  assigned
+  commented
+  sla_breached
+  reopened
+  resolved
+  closed
+}
+
+enum PlatformTicketActorType {
+  user
+  operator
+  system
+}
+
+enum PlatformAdminRole {
+  operator
+  support_agent
+}
+
+enum PlatformAdminStatus {
+  active
+  suspended
+}
+
+enum PlatformAuditEvent {
+  admin_login
+  /// 2026-09-28 (S4) — operator signed out (all earlier admin cookies ended).
+  admin_logout
+  admin_login_failed
+  admin_created
+  admin_suspended
+  ticket_flagged_spam
+  ticket_assigned
+  ticket_status_changed
+  user_blocked
+  user_unblocked
+  workspace_suspended
+  workspace_resumed
+  impersonation_started
+  impersonation_ended
+  config_changed
+  /// Stage 5 / WP2 (2026-07-28) — operator issued a password reset.
+  password_reset_issued
+}
+
+model PlatformTicket {
+  id               String                 @id @default(cuid())
+  workspaceId      String                 @map("workspace_id")
+  raisedByUserId   String                 @map("raised_by_user_id")
+  /// Sequential GLOBALLY (operator inbox numbering), not per-workspace.
+  ticketNumber     Int                    @default(0) @map("ticket_number")
+  subject          String
+  description      String
+  category         PlatformTicketCategory
+  status           PlatformTicketStatus   @default(open)
+  priority         String
+  assignedAdminId  String?                @map("assigned_admin_id")
+  isSpamFlagged    Boolean                @default(false) @map("is_spam_flagged")
+  spamReason       String?                @map("spam_reason")
+  flaggedByAdminId String?                @map("flagged_by_admin_id")
+  slaStartedAt     DateTime               @map("sla_started_at")
+  slaDueAt         DateTime               @map("sla_due_at")
+  firstResponseAt  DateTime?              @map("first_response_at")
+  resolvedAt       DateTime?              @map("resolved_at")
+  closedAt         DateTime?              @map("closed_at")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt        @map("updated_at")
+  events           PlatformTicketEvent[]
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([workspaceId])
+  @@index([raisedByUserId])
+  @@index([isSpamFlagged])
+  @@index([assignedAdminId])
+  @@unique([ticketNumber])
+  @@map("platform_tickets")
+}
+
+model PlatformTicketEvent {
+  id           String                  @id @default(cuid())
+  ticketId     String                  @map("ticket_id")
+  workspaceId  String                  @map("workspace_id")
+  eventType    PlatformTicketEventType @map("event_type")
+  actorType    PlatformTicketActorType @map("actor_type")
+  actorUserId  String?                 @map("actor_user_id")
+  actorAdminId String?                 @map("actor_admin_id")
+  fromStatus   PlatformTicketStatus?   @map("from_status")
+  toStatus     PlatformTicketStatus?   @map("to_status")
+  note         String?
+  createdAt    DateTime                @default(now()) @map("created_at")
+  ticket       PlatformTicket          @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([workspaceId])
+  @@map("platform_ticket_events")
+}
+
+/// 2026-07-28 — Singleton row (id = "default"). The operator's support-hours
+/// window for the platform-ticket SLA clock. Tunable in the admin panel.
+model PlatformSupportHours {
+  id           String   @id @default("default")
+  hoursStart   String   @map("hours_start") // "HH:MM" 24h
+  hoursEnd     String   @map("hours_end")
+  businessDays Int[]    @map("business_days") // ISO weekday [1..7]
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt        @map("updated_at")
+
+  @@map("platform_support_hours")
+}
+
+/// 2026-07-28 — Singleton row (id = "default"). The operator's INTERNAL SLA
+/// targets per priority. User never sees these.
+model PlatformTicketSlaSettings {
+  id                String   @id @default("default")
+  urgentSlaMinutes  Int      @map("urgent_sla_minutes")
+  highSlaMinutes    Int      @map("high_sla_minutes")
+  mediumSlaMinutes  Int      @map("medium_sla_minutes")
+  lowSlaMinutes     Int      @map("low_sla_minutes")
+  clockMode         String   @default("business_hours") @map("clock_mode")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt        @map("updated_at")
+
+  @@map("platform_ticket_sla_settings")
+}
+
+model PlatformUserBlock {
+  id                    String   @id @default(cuid())
+  userId                String   @map("user_id")
+  workspaceId           String   @map("workspace_id")
+  isBlockedFromSupport  Boolean  @default(false) @map("is_blocked_from_support")
+  reason                String?
+  blockedByAdminId      String   @map("blocked_by_admin_id")
+  blockedAt             DateTime @default(now()) @map("blocked_at")
+  workspace             Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@index([workspaceId])
+  @@map("platform_user_blocks")
+}
+
+model PlatformAdmin {
+  id          String             @id @default(cuid())
+  email       String             @unique
+  name        String
+  role        PlatformAdminRole  @default(operator)
+  status      PlatformAdminStatus @default(active)
+  lastLoginAt DateTime?          @map("last_login_at")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt        @map("updated_at")
+  credential  PlatformAdminCredential?
+  auditLogs   PlatformAuditLog[]
+
+  @@map("platform_admins")
+}
+
+model PlatformAdminCredential {
+  id           String   @id @default(cuid())
+  adminId      String   @unique @map("admin_id")
+  email        String
+  passwordHash String   @map("password_hash")
+  /// 2026-09-28 (S4): bumped on sign-out so a copied admin cookie stops working.
+  sessionVersion Int    @default(1) @map("session_version")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt        @map("updated_at")
+  admin        PlatformAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("platform_admin_credentials")
+}
+
+model PlatformAuditLog {
+  id        String             @id @default(cuid())
+  adminId   String             @map("admin_id")
+  action    PlatformAuditEvent
+  metadata  Json?
+  createdAt DateTime           @default(now()) @map("created_at")
+  admin     PlatformAdmin      @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("platform_audit_logs")
+}
+
+// ============================================================================
+// Stage 5 / WP2 (2026-07-28) — operator admin panel models.
+// See docs/LOGIC.md 2026-07-28 for the exact rules these enforce.
+// ============================================================================
+
+/// Global feature-flag kill-switch. Per LOGIC.md: a FIXED set of keys, all
+/// global (workspaceId = null — no per-workspace overrides in WP2). Default
+/// value for an unset flag is TRUE (system "on"; operator flips to false).
+model FeatureFlag {
+  id                   String   @id @default(cuid())
+  key                  String
+  /// Always null in WP2 (global flags only). Kept as nullable for a future
+  /// per-workspace-override stage without a schema change.
+  workspaceId          String?  @map("workspace_id")
+  enabled              Boolean  @default(true)
+  lastToggledByAdminId String   @map("last_toggled_by_admin_id")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  workspace            Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([key, workspaceId])
+  @@index([key])
+  @@map("feature_flags")
+}
+
+/// One-time password-reset token issued by an operator. The token is stored
+/// HASHED (never plaintext), has a 24-hour expiry, and is delivered to the
+/// user via email. Issuing bumps the user's UserCredential.sessionVersion
+/// (existing sessions killed).
+model PasswordResetToken {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  workspaceId     String    @map("workspace_id")
+  /// SHA-256 hash of the raw token. The raw token is NEVER stored.
+  tokenHash       String    @map("token_hash")
+  issuedAt        DateTime  @map("issued_at")
+  /// issuedAt + 24h. After this the token is rejected.
+  expiresAt       DateTime  @map("expires_at")
+  /// Stamped when the user sets a new password with this token.
+  consumedAt      DateTime? @map("consumed_at")
+  issuedByAdminId String    @map("issued_by_admin_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("password_reset_tokens")
+}
+
+/// An active operator→workspace-user impersonation session. Per LOGIC.md:
+/// operator-only, 15-minute TTL, one at a time, owner blocked, fully audited.
+model ImpersonationSession {
+  id                String    @id @default(cuid())
+  adminId           String    @map("admin_id")
+  targetUserId      String    @map("target_user_id")
+  targetWorkspaceId String    @map("target_workspace_id")
+  /// SHA-256 hash of the token presented to the workspace-session layer.
+  tokenHash         String    @map("token_hash")
+  startedAt         DateTime  @map("started_at")
+  /// startedAt + 15min. After this the session is rejected.
+  expiresAt         DateTime  @map("expires_at")
+  /// Stamped on exitImpersonation; a session with endedAt is invalid.
+  endedAt           DateTime? @map("ended_at")
+  reason            String
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@index([adminId])
+  @@index([tokenHash])
+  @@map("impersonation_sessions")
+}
+
+/// Stage 5 / WP1 (2026-07-28) — Email verification token. One-time, hashed,
+/// 24h expiry, idempotent verify. Same security shape as PasswordResetToken.
+/// See docs/LOGIC.md 2026-07-28 (WP1 entries).
+model EmailVerificationToken {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  workspaceId String   @map("workspace_id")
+  /// SHA-256 hash of the raw token. The raw token is NEVER stored.
+  tokenHash   String   @map("token_hash")
+  issuedAt    DateTime @map("issued_at")
+  /// issuedAt + 24h. After this the token is rejected.
+  expiresAt   DateTime @map("expires_at")
+  /// Stamped when the user clicks the verify link.
+  consumedAt  DateTime? @map("consumed_at")
+  /// "signup" | "reissue"
+  source      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("email_verification_tokens")
+}
+
+/// Stage 5 / WP1 (2026-07-28) — Member invite. Pending → (accepted | revoked |
+/// expired). 7-day expiry, token hashed, owner/admin issues by email with a
+/// role from {admin, sales_member, viewer} (NEVER owner). See docs/LOGIC.md.
+model Invite {
+  id              String   @id @default(cuid())
+  workspaceId     String   @map("workspace_id")
+  email           String
+  role            String
+  /// SHA-256 hash of the raw token. The raw token is NEVER stored.
+  tokenHash       String   @map("token_hash")
+  status          String   @default("pending") // pending | accepted | revoked | expired
+  invitedByUserId String   @map("invited_by_user_id")
+  acceptedByUserId String? @map("accepted_by_user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  /// createdAt + 7d. After this, accept is refused.
+  expiresAt       DateTime @map("expires_at")
+  resolvedAt      DateTime? @map("resolved_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, email, status])
+  @@index([workspaceId])
+  @@index([tokenHash])
+  @@index([workspaceId, email])
+  @@map("invites")
+}
+
+/// Owner Copilot (2026-08-01) — owner-facing assistant chat.
+/// Design: docs/planning/OWNER_COPILOT_DESIGN.md. Persists the conversation so
+/// the chat survives refresh + is auditable. The 5-tier router + Quote handler
+/// live in OwnerCopilotService; these tables only store chat state.
+/// 2026-09-27 — a reminder to do something later about one customer. Only an
+/// "open" (owner-confirmed) reminder counts. Deleted with its customer.
+model FollowUp {
+  id          String    @id @default(cuid())
+  workspaceId String    @map("workspace_id")
+  leadId      String    @map("lead_id")
+  /// IST calendar date YYYY-MM-DD; null on a proposal not dated yet.
+  dueOn       String?   @map("due_on")
+  note        String
+  source      String    @default("owner")
+  evidence    String?
+  status      String    @default("open")
+  /// 2026-09-28 — "reorder" | "dormant" on proposals from order history.
+  kind        String?
+  /// 2026-09-28 — the order cycle (last order id) a reorder proposal belongs to.
+  cycleKey    String?   @map("cycle_key")
+  createdBy   String?   @map("created_by")
+  doneAt      DateTime? @map("done_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status, dueOn])
+  @@index([workspaceId, leadId])
+  @@map("follow_ups")
+}
+
+/// 2026-09-28 — a real result for one customer (order placed, opted out,
+/// complaint, no reply in 14 days…). The weekly learning step proposes
+/// patterns from these; nothing changes by itself. Deleted with its customer.
+model OutcomeSignal {
+  id              String    @id @default(cuid())
+  workspaceId     String    @map("workspace_id")
+  leadId          String    @map("lead_id")
+  kind            String
+  at              DateTime
+  value           Float?
+  relatedReplyIds String[]  @default([]) @map("related_reply_ids")
+  sourceId        String?   @map("source_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead            Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, kind, sourceId])
+  @@index([workspaceId, at])
+  @@index([workspaceId, leadId])
+  @@map("outcome_signals")
+}
+
+model OwnerCopilotConversation {
+  id                String   @id @default(cuid())
+  workspaceId       String   @map("workspace_id")
+  ownerUserId       String   @map("owner_user_id")
+  /// The lead the owner is currently talking about (global panel; actions
+  /// stay per-lead-isolated). Nullable — T1 read-only Q&A can have none.
+  activeLeadId      String?  @map("active_lead_id")
+  clarifyBatchCount Int      @default(0) @map("clarify_batch_count")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messages          OwnerCopilotMessage[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, ownerUserId])
+  @@map("owner_copilot_conversations")
+}
+
+model OwnerCopilotMessage {
+  id               String   @id @default(cuid())
+  workspaceId      String   @map("workspace_id")
+  conversationId   String   @map("conversation_id")
+  role             String // "owner" | "copilot"
+  kind             String // owner_input | copilot_question | copilot_draft | ...
+  text             String
+  language         String   @default("unknown") // "en" | "hi" | "unknown"
+  tier             String? // T1..T5
+  pendingActionJson Json?   @map("pending_action_json")
+  createdAt        DateTime @default(now()) @map("created_at")
+  conversation     OwnerCopilotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, conversationId])
+  @@map("owner_copilot_messages")
+}

@@ -1,0 +1,1 @@
+export const leadScoringPrompt = `Score a lead using F-N-R-T: Fit, Need, Reachability, Timing. Each score is 0 to 5. Return JSON with fitScore, needScore, reachabilityScore, timingScore, totalScore, qualificationStatus, and reason.`;

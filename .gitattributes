@@ -1,0 +1,6 @@
+# Shell scripts must keep LF endings. This repo is developed on Windows with
+# core.autocrlf=true; a CRLF checkout turns the shebang into "#!/bin/sh\r",
+# which the container reports as "no such file or directory" — a confusing
+# failure a long way from its cause. The Linux CI/Render checkout would not hit
+# it, but a Docker build run from a Windows working tree would.
+*.sh text eol=lf

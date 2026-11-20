@@ -1,0 +1,96 @@
+# Stage D.1 — Docker build context exclusions.
+# Keeps the build context small (faster builds, smaller cache) and prevents
+# secrets / dev artifacts from leaking into the image.
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Dependencies (will be installed fresh inside the builder stage)
+node_modules
+
+# Next.js build output (will be produced fresh inside the builder stage)
+.next
+.next-prod
+.golden-scratch
+.leadgen-data-e2e
+readiness-proof
+
+# Local data — NEVER bake into an image
+.leadgen-data
+.env*
+
+# Tests + docs (not needed at runtime; keeps image small + reduces attack surface)
+docs
+# N-BUILD-2 (2026-08-20): exclude ALL of scripts/ and re-admit only the
+# files the RUNTIME actually runs. The previous list named five script patterns
+# and missed the rest, which broke the image build twice in a row for the same
+# reason: `tsconfig.json` includes `**/*.ts`, so `next build` type-checks every
+# .ts left in the context, and a dev script that imports a helper from an
+# EXCLUDED directory becomes "Cannot find module" — a failure that cannot
+# reproduce locally, where the helper is present (`tsc --noEmit` is exit 0).
+# First it was playwright.config.ts → ./e2e/helpers/data-dir; then
+# scripts/probes/fresh-workspace-ai-probe.ts → ../golden/_helpers/provider.
+# A deny-all + allow-list cannot drift that way: a new probe, smoke or golden
+# is excluded by default, and anything the runtime needs must be named here on
+# purpose. The two entrypoints below import only from `@/…` (src), which the
+# image already carries — verified by grep, not assumed.
+scripts
+!scripts/worker-entrypoint.ts
+!scripts/scheduler-entrypoint.ts
+# 2026-09-09 (session 55): and the entrypoint the image's CMD actually runs.
+# It was added to the Dockerfile without being re-admitted here, and the deny-
+# all rule above swallowed it: the build died at
+#   COPY scripts/docker-entrypoint.sh: "/scripts/docker-entrypoint.sh": not found
+# so the change that makes migrations run before the server starts could not
+# reach production at all. Nothing local reproduces it — the file is right
+# there on disk; only the Docker build context is missing it.
+!scripts/docker-entrypoint.sh
+# 2026-09-27: the builder generates the demo site's sample company with these
+# two (only src/ imports; no helpers from other scripts). Same trap as above:
+# without them the build died "Cannot find module '/app/scripts/seed-demo.ts'".
+!scripts/seed-demo.ts
+!scripts/seed-demo-knowledge.ts
+tests
+playwright-report
+test-results
+e2e
+# N-BUILD-2 (2026-08-20): playwright.config.ts must be excluded TOO, not just
+# the e2e/ directory it imports from. tsconfig.json includes `**/*.ts`, so
+# `next build` inside the image type-checked this root-level config file, and
+# its first two lines import ./e2e/helpers/data-dir + ./e2e/helpers/e2e-target
+# — which the line above had just removed from the context. The image build
+# failed with "Cannot find module './e2e/helpers/data-dir'" while `tsc
+# --noEmit` was exit 0 locally, because locally the files are there. It is a
+# test harness config; nothing at runtime reads it.
+# All local journey configurations import test helpers excluded above.
+playwright*.config.ts
+
+# Misc
+Dockerfile
+.dockerignore
+docker-compose.yml
+Caddyfile
+.github
+.vscode
+.idea
+*.log
+npm-debug.log*
+.DS_Store
+README.md
+AGENTS.md
+CLAUDE.md
+CODEX_WORKING_RULES.md
+Kimi_WORKING_RULES.md
+AUTOMATION_*.md
+NEXT_ACTIONS.md
+.zcode
+.agents
+.claude
+.playwright-mcp
+.measure
+.mutation-sweep
+audit-mobile-out
+Work Flow Images
+fixtures

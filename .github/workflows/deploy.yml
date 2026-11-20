@@ -1,0 +1,124 @@
+# Stage D.5 — Build + push the Docker image to GHCR on push to main.
+#
+# This workflow does NOT auto-deploy to the VPS. The operator controls
+# cutover manually: ssh in, `docker compose pull && docker compose up -d`.
+# This matches the operator-controlled-cutover pattern from Stage A and
+# respects the "no automatic outward-facing action" rule.
+#
+# Image tags produced:
+#   - ghcr.io/${GHCR_OWNER}/leadgen-platform:latest       (mutable)
+#   - ghcr.io/${GHCR_OWNER}/leadgen-platform:${git-sha}    (immutable, for rollback)
+#
+# Prerequisites (one-time GitHub setup):
+#   1. Set GHCR_OWNER as a repo variable (Settings → Secrets and variables →
+#      Actions → Variables) — your GitHub username or org name (lowercase).
+#   2. The default GITHUB_TOKEN has write:packages scope automatically — no
+#      extra secret needed. (If you've restricted it, add a PAT as GHCR_TOKEN.)
+#
+# Status badge for README:
+#   ![Deploy](https://github.com/<owner>/<repo>/actions/workflows/deploy.yml/badge.svg)
+
+name: Deploy (Build + Push Image)
+
+on:
+  push:
+    branches: [main]
+  # Allow manual triggering for re-publishing without a code change.
+  workflow_dispatch:
+
+# Avoid racing two deploys on rapid pushes.
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false  # let the in-flight one finish to keep tags stable
+
+permissions:
+  contents: read
+  packages: write  # needed to push to GHCR
+
+jobs:
+  build-and-push:
+    name: Build image + push to GHCR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # This push workflow runs independently of the full CI workflow. It
+    # rechecks type/build before publishing an image; that does not prove the
+    # golden, smoke, browser or runtime-security gates passed. Render's
+    # commit-triggered deployment is independent too (see DEPLOYMENT.md).
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pre-image Ironclad Gates (HARD FAIL — never push a broken image)
+        run: |
+          set -e
+          echo "::group::tsc --noEmit"
+          npx tsc --noEmit
+          echo "::endgroup::"
+          echo "::group::build"
+          npm run build
+          echo "::endgroup::"
+
+      - name: Set image metadata (tags + labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ vars.GHCR_OWNER || github.repository_owner }}/leadgen-platform
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+          labels: |
+            org.opencontainers.image.title=LeadCockpit
+            org.opencontainers.image.description=Agentic B2B CRM + lead generation SaaS
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build + push image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Multi-platform is a Stage 5+ concern; for the Hetzner Mumbai x86_64
+          # VPS, linux/amd64 is correct and keeps build time fast.
+          platforms: linux/amd64
+          # Cache across runs (free for GHCR).
+          cache-from: type=registry,ref=ghcr.io/${{ vars.GHCR_OWNER || github.repository_owner }}/leadgen-platform:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ vars.GHCR_OWNER || github.repository_owner }}/leadgen-platform:buildcache,mode=max
+
+      - name: Summary
+        run: |
+          echo "### 🚢 Docker image published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Image: \`ghcr.io/${{ vars.GHCR_OWNER || github.repository_owner }}/leadgen-platform\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Tags:" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" | sed 's/^/- `&`/' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next step (manual):** SSH into the VPS and run:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker compose pull" >> $GITHUB_STEP_SUMMARY
+          echo "docker compose up -d" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See \`docs/STAGE_D_DEPLOYMENT_RUNBOOK.md\` for the full procedure." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,1 @@
+export { MiniMaxProvider } from "./OpenAICompatibleProvider";

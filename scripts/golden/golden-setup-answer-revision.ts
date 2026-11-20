@@ -1,0 +1,64 @@
+import './_helpers/isolate-standalone';
+import assert from 'node:assert/strict';
+import { createJsonRepos } from './_helpers/provider';
+import { handleOwnerCopilotTurn, resolveSetupAnswerProposal } from '@/services/OwnerCopilotService';
+import { listKnowledgeQuestionAnswers } from '@/services/DocumentQuestionAnsweringService';
+import type { BrainCall } from '@/services/OwnerConversationBrain';
+import { revisionPreview } from '@/services/setup-answer-revision';
+import { recordSetupAnswer } from '@/services/SetupInterviewService';
+const repos = createJsonRepos();
+const brain = (output: object): BrainCall => async () => ({ output, real: true });
+async function main() {
+ const workspaceId = `revision_${Date.now()}`;
+ await repos.workspace.create({id:workspaceId,name:'Revision trial',status:'active'});
+ await repos.businessProfile.create({workspaceId,companyName:'Sample business',checklistKinds:['manufacturer','trader'],checklistConfirmedAt:new Date().toISOString()});
+ const conversation = await repos.ownerCopilotConversation.create({workspaceId,ownerUserId:'owner'} as never);
+ const turn = (ownerText:string,output:object) => handleOwnerCopilotTurn({workspaceId,conversationId:conversation.id,ownerUserId:'owner',ownerText,repos,conversationBrain:brain(output)});
+ const first = await turn('Let us fill in my business details',{intent:'setup_question',reply:'First question'});
+ const marker = first.pendingAction!.entityId!;
+ const own = 'we make zari thread n also trade laces, only b2b';
+ await turn(own,{intent:'record_answer',answers:'q1',answer_text:own,reply:'Next question'});
+ const command = 'please edit that line and save it according to you in better phrasing which should be relevant to the system and directly answers the question';
+ // Deliberately reproduce the wrong model classification in the screenshot.
+ const response = await turn(command,{intent:'record_answer',answers:'q2',answer_text:command,reply:'Next question'});
+ assert.ok(!response.pendingAction?.proposal?.answer.includes(command),'The editing instruction became a proposed company fact');
+ for (const instruction of ['Make it sound better and save it', 'Please change that to better English', 'My last answer needs correction', 'Translate my last answer into clear English']) {
+   const refused = await turn(instruction,{intent:'record_answer',answers:'q1',answer_text:instruction,reply:'Next question'});
+   assert.equal(refused.pendingAction?.proposal,undefined,`Editing instruction proposed as knowledge: ${instruction}`);
+   assert.equal((await listKnowledgeQuestionAnswers(workspaceId,repos)).find(a=>`${a.domainKey}/${a.questionKey}`===marker)?.answer,own);
+ }
+ const clean = 'The company manufactures zari thread and also trades laces. It sells to businesses only.';
+ const preview = await turn('Please rewrite my last answer',{intent:'rewrite_answer',answers:'s1',answer_text:clean,reply:''});
+ assert.equal(preview.pendingAction?.entityId,marker);
+ assert.equal(preview.pendingAction?.proposal?.answer,clean);
+ assert.equal(preview.pendingAction?.proposal?.ownerWords,own);
+ assert.equal((await listKnowledgeQuestionAnswers(workspaceId,repos)).find(a=>`${a.domainKey}/${a.questionKey}`===marker)?.answer,own,'Preview changed knowledge before approval');
+ const confirmed = await resolveSetupAnswerProposal({repos,workspaceId,conversationId:conversation.id,ownerUserId:'owner',save:true});
+ assert.ok(confirmed.ok);
+ const answer = (await listKnowledgeQuestionAnswers(workspaceId,repos)).find(a=>`${a.domainKey}/${a.questionKey}`===marker)!;
+ assert.equal(answer.answer,clean);
+ assert.equal(answer.sourceSnippet,own);
+ assert.equal((await resolveSetupAnswerProposal({repos,workspaceId,conversationId:conversation.id,ownerUserId:'owner',save:true})).ok,false);
+ const declined = await turn('Rewrite my last answer',{intent:'rewrite_answer',answers:'s1',answer_text:own,reply:''});
+ assert.equal(declined.pendingAction?.proposal?.revision,true);
+ await resolveSetupAnswerProposal({repos,workspaceId,conversationId:conversation.id,ownerUserId:'owner',save:false});
+ assert.equal((await listKnowledgeQuestionAnswers(workspaceId,repos)).find(a=>`${a.domainKey}/${a.questionKey}`===marker)?.answer,clean);
+ const offline = await handleOwnerCopilotTurn({workspaceId,conversationId:conversation.id,ownerUserId:'owner',ownerText:'Please rewrite the last answer',repos,conversationBrain:async()=>({real:false,output:{}})});
+ assert.equal(offline.aiStatus,'fallback');
+ assert.match(offline.text,/unchanged/);
+ assert.equal(revisionPreview('MOQ 70 metres','MOQ 50 kg','rewrite'),undefined);
+ assert.equal(revisionPreview('We guarantee delivery','We cannot guarantee delivery','rewrite'),undefined);
+ assert.equal(revisionPreview('Please edit that line',own,'Please edit that line'),undefined);
+ const unknown = await turn('Please rewrite a previous answer',{intent:'rewrite_answer',answers:'s999',answer_text:clean,reply:''});
+ assert.equal(unknown.pendingAction?.proposal,undefined,'Unknown saved-answer reference got a proposal');
+ await turn('Please rewrite my last answer',{intent:'rewrite_answer',answers:'s1',answer_text:own,reply:''});
+ const [domainKey,questionKey] = marker.split('/');
+ await recordSetupAnswer({workspaceId,domainKey,questionKey,answer:'The owner made a newer correction',ownerWords:'The owner made a newer correction',repos});
+ const stale = await resolveSetupAnswerProposal({repos,workspaceId,conversationId:conversation.id,ownerUserId:'owner',save:true});
+ assert.ok(stale.ok && stale.response.text.includes('changed since'));
+ assert.equal((await listKnowledgeQuestionAnswers(workspaceId,repos)).find(a=>`${a.domainKey}/${a.questionKey}`===marker)?.answer,'The owner made a newer correction');
+ const blocked = await recordSetupAnswer({workspaceId,domainKey,questionKey,answer:own,ownerWords:own,expectedAnswer:clean,repos});
+ assert.equal(blocked.saved,false,'Repository mutation overwrote a different current answer');
+ console.log('PASS editing command refused, source-grounded preview, approval persistence, evidence and repeated click');
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,0 +1,52 @@
+# 2026-09-27 (CEO: "the daily routine runs by itself").
+#
+# On Render the scheduler service is a paid feature and the free web service
+# sleeps when idle, so a timer inside the app would never fire. This free
+# GitHub schedule wakes the site and starts the daily routine:
+# find new buyers -> AI-score -> auto-approve safe leads -> morning summary with
+# reminders due today. It never sends anything to a customer.
+#
+# Setup (owner, once — Claude never handles the value):
+#   1. Make a long random secret (40+ characters).
+#   2. GitHub repo -> Settings -> Secrets and variables -> Actions ->
+#      New repository secret: DAILY_RUN_SECRET = <the secret>
+#      and a variable (Variables tab): DAILY_RUN_URL = https://lead-cockpit.onrender.com
+#   3. Render -> lead-cockpit -> Environment: DAILY_RUN_SECRET = <the same secret>
+# Until both are set this workflow skips itself and the endpoint stays off.
+#
+# Plan: docs/planning/DAILY-ROUTINE-AND-REMINDERS-PLAN.md
+name: daily-run
+
+on:
+  schedule:
+    # 03:30 UTC = 09:00 IST, Monday to Saturday.
+    - cron: "30 3 * * 1-6"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Start the daily routine
+        env:
+          DAILY_RUN_SECRET: ${{ secrets.DAILY_RUN_SECRET }}
+          DAILY_RUN_URL: ${{ vars.DAILY_RUN_URL }}
+        run: |
+          if [ -z "$DAILY_RUN_SECRET" ] || [ -z "$DAILY_RUN_URL" ]; then
+            echo "DAILY_RUN_SECRET or DAILY_RUN_URL is not set — skipping (see the setup notes at the top of this file)."
+            exit 0
+          fi
+          # A sleeping free instance takes up to a minute to wake: try the
+          # health check for up to ~3 minutes first.
+          for i in $(seq 1 18); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$DAILY_RUN_URL/api/health" || true)
+            [ "$code" = "200" ] && break
+            sleep 10
+          done
+          code=$(curl -s -o /tmp/out.json -w '%{http_code}' --max-time 60 -X POST \
+            -H "x-daily-run-secret: $DAILY_RUN_SECRET" "$DAILY_RUN_URL/api/internal/daily-run")
+          echo "daily-run answered $code: $(cat /tmp/out.json)"
+          [ "$code" = "202" ]

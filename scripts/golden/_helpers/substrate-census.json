@@ -1,0 +1,1873 @@
+{
+  "generatedBy": "scripts/run-all-goldens.ts",
+  "note": "Generated on every full suite run. Do not edit by hand. `evidence` says HOW we know: \"data-dir\" = observed reaching storage, because the golden created its own JSON data directory; \"declared-postgres\" = a PRISMA_GOLDEN or HYBRID_GOLDEN, which reaches a database by definition and is not measurable by that trick; \"none-observed\" = reached no substrate, so it is pure logic and needs no Postgres pass. Audit A-7's scope is exactly the \"data-dir\" set.",
+  "totals": {
+    "goldens": 310,
+    "reachedStorage": 164,
+    "pureLogic": 146,
+    "jsonOnlyAndReachedStorage": 148,
+    "alreadyOnPostgres": 16
+  },
+  "goldens": [
+    {
+      "rel": "scripts/golden/golden-a-backup-can-be-loaded-back-in.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-a-blank-screen-is-not-a-finished-one.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-a-real-list-can-be-brought-in.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-a-ticket-can-be-routed-to-somebody.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-abusive-message-rule.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-acceptance-harness-intact.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-account-summary-truth.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-activity-log.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-agent-context.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-agent-instruction-conflicts.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-agent-instructions.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-agent-loop.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-agent-memory-fixes.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-agent-run.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-agent-runtime.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-agentic-retrieval-wiring.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ai-credential-cleanup.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ai-usage.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-an-icp-can-be-edited-on-postgres.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-an-icp-can-say-who-it-is-not-for.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-an-opt-out-is-not-undone-by-the-next-message.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-an-uploaded-photo-outlives-the-container.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-answer-reaches-search.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-approval-before-acting.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-approved-not-delivered.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-atomic-write-retry.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-audit-actor.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-audit-fixes-aug04-2.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-audit-fixes-aug04.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-audit-fixes-aug05.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-auth-break.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-auto-acknowledge.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-auto-approve-batch.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-auto-reply-topics.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-auto-send-decision.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-auto-send-gate.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-blocked-extraction-message.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-business-profile-routing.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-buyer-checklist.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-campaign-analytics-scoping.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-campaign-follows-the-chosen-icp.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-campaign-planning.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-campaign-status-line.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-checklist-engine.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-checklist-per-business-type.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-classifier-word-boundary.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-command-center-report-text.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-commercial-money-review.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-conflict-answer-is-a-choice.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-conflict-resolve-durability.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-consent-safety.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-consent-wiring.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-contradiction-retrieval.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-convert-to-ticket-wiring.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-copilot-quote.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-copilot-tasks.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-copilot-voice-of-customer.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-correction-supersedes-document.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-crawler.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-credential-crud.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-credential-session-version-mapper.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-credential-session-version-prisma.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-cross-domain-group-answer.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-csp-nonce.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-csrf-public-host.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-css-layering.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-csv-import-behaviour.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-daily-routine-and-reminders.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-dates-read-indian.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-db-error-explained.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-demo-boundaries-honesty.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-demo-data-coherence.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-demo-freshness-substrate.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-demo-freshness.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-demo-knowledge-spread.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-discount-flag-wiring.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-discovery-listening.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-display-labels.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-dnc-registry-substrate-prisma.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-dnc-registry.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-dnc-state-machine.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-document-extraction-confidence.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-document-structure.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-double-approve-block.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-e2e-harness-hygiene.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-e2e-makes-no-paid-calls.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-edits-cannot-forge-or-wipe.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-email-outbound.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-email-send.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-embedding-batched.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-embedding-metered.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-enrichment-contact-label.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-erasure-atomicity.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-erasure-audit.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-erasure-every-trace.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-essential-setup-stage.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-evidence-shape.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-expensive-route-caps.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-fact-conflict.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-feature-flag-wiring.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-festival-calendar.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-find-lead-by-phone.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-followup-retrieval.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-form-label-binding.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-guided-blocks-are-named.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-hybrid-retrieval.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-icp-generation.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-inbound-media.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-infra-libs.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-instruction-guess-phrasings.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-integration-create.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "hybrid"
+    },
+    {
+      "rel": "scripts/golden/golden-integration-credentials.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ist-time.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-job-queue.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-json-substrate-leak.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-json-update-identity.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-kb-semantic.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-kill-switch-digest.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-kill-switch-wiring.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-answer-comparison.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-base.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-break.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-conflicts.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-document-removable.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-extraction-helpers.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-questionnaire-pdf.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-sector-fixes.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-staleness.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-knowledge-sync.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-agent-action-plan.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-create-field-fidelity.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-enrichment.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-memory.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-multi-number.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-review-bar-is-a-fraction.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-review-math.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-rules.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-score-reason-is-the-models.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lead-scoring-is-ai-only.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-leads-break.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-learned-rules.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-learning-loop.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lifecycle-timestamps.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-lineitem-validation.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-list-ceiling.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-list-pagination.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-llm-adapters.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-llm-cost-accuracy.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-llm-workspace-attribution.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-market-research.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-master-team.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-meaning-search-labels.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-media-catalog.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-message-batching.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-message-copy.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-message-generation.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-migration-plan-safety.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-migration-rules-policy.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-migration-unique-collision.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-migrations-run-on-deploy.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-missing-entity-is-404.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-mock-answers-need-review.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-model-catalog.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-model-discovery.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-model-json-line-breaks.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-monitoring.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-multi-tenant-scoping.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-mutateall-removal-parity.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-needs-you-v2.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-new-buyers-today.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-no-auto-outreach.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-no-control-characters.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-no-dotenv-instructions.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-number-allocation-race.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ollama-provider.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-one-answer-is-one-unit-of-work.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-operator-screen-honesty.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-operator-script-env.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-opt-out-any-spelling.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-optout-without-lead.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-orchestrator.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-order-cancel.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-orphan-draft-refusal.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-outreach-queue.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-oversized-batch-splits.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-owner-conversation.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-owner-question-queue.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-owner-whatsapp.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-page-intros.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-partial-cancel-math.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-password-reset-redemption.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-pending-settings-draft.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-platform-admin-auth.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-platform-admin-csrf.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-platform-admin-get-rbac.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-platform-admin-ops.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-platform-ai-defaults.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-platform-kill-switch-login-block.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-platform-ticket-user-view.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-platform-ticket.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-policy-pdf.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-price-change-notify.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-prisma-commercial-parity.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-prisma-field-clearing.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-prisma-parity.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-prisma-stage5-mappers.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-product-name-parsing.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-product-price-is-settable.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-product-pricing.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-product-research-reachable.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-product-settings-draft.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-profile-description-is-editable.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-prompts-retrievers.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-prospecting-break-2.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-prospecting.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-provider-health.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-question-bank-quality.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-question-counts-agree.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-quote-order.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-quote-pdf.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-quote-revise-api.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-rate-limit.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-rbac-map.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-readall-coverage.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-real-ai-eval-safety.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-receive-is-configurable-by-the-owner.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-reply-classification-labels.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-reply-deadline-calendar.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-reply-reached-customer.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-repo-filter-parity.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-repositories.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-retrieval-measurement.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-review-leftovers.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-review-whatsapp-fixes.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-run-in-transaction.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-safe-answers-offer-matches-approval.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-safe-audit.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-safe-not-found.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-scheduler-drafts.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-schema-wiring.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-secret-redaction.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-security-libs.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-seed-lifecycle-dates.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-seed-refuses-migrated-data.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-settings-date-roundtrip.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-settings-field-shapes.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-settings-repair-on-sync.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-settings.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-setup-card-order.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-signup-invite-atomicity.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-signup-invite.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-snapshot-mapper-coverage.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-snapshot-reads-less.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-snapshot-session.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-snapshot-write-diff.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ssrf-guard.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-stage5-batch4-chokepoints.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-status-transitions.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-structured-settings-draft.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-structured-settings-mapping.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-substrate-parity.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "hybrid"
+    },
+    {
+      "rel": "scripts/golden/golden-substrate-write-parity.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-support-admin-break.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-sync-indexes-uploaded-files.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-task-schemas.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-team-and-sign-in-safety.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-tenant-identity.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-test-isolation.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-test-my-ai-and-coverage.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-the-agent-picks-the-file-itself.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-the-agent-recommendation-is-shown.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-the-cap-that-blocks-can-be-raised.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-the-dry-run-claim-is-true.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-the-fallback-never-quotes-a-question.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-the-model-can-be-asked-to-look-again.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-the-photo-the-ai-chose-reaches-the-screen.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-the-profile-and-the-answers-agree.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ticket-assignment-reachable.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ticket-lifecycle.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ticket-sla.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-ticket-wiring.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-token-consume-unknown-id.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "hybrid"
+    },
+    {
+      "rel": "scripts/golden/golden-tour-session.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-transcription-metered.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-truncated-answer.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-unroutable-contacts.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-user-errors-are-not-500.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-utils-format.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-webhook-dedup-prisma.ts",
+      "touched": true,
+      "evidence": "declared-postgres",
+      "substrate": "prisma"
+    },
+    {
+      "rel": "scripts/golden/golden-webhook-dedup.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-webhook-replay-dedup.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-break.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-conversation-engine.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-credentials.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-last-inbound.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-outbound-send.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-templates.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-test-saves-nothing.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-webhook.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whatsapp-window.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-whole-document-extraction.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-workspace-cascade-completeness.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-workspace-delete-scoping.ts",
+      "touched": true,
+      "evidence": "data-dir",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-workspace-key.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-workspace-scoping.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-wp5-alerting.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-wp5-backup-runbook.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-wp5-edge-rate-limit.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-wp5-health-probe.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    },
+    {
+      "rel": "scripts/golden/golden-wp5-incident-runbook.ts",
+      "touched": false,
+      "evidence": "none-observed",
+      "substrate": "json"
+    }
+  ]
+}

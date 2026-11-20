@@ -1,0 +1,11 @@
+-- N11 (2026-09-19, session 57) — what this buyer has told us about themselves,
+-- and what we have already asked them.
+--
+-- One JSON column rather than two tables. It is read and written as a whole,
+-- exactly once per conversation, and is never queried across leads — so a table
+-- would buy joins nobody needs and cost a migration every time the checklist
+-- gains a field.
+--
+-- Nullable: a lead nobody has spoken to has told us nothing, and an empty object
+-- would read as "asked and got no answer".
+ALTER TABLE "leads" ADD COLUMN IF NOT EXISTS "discovery_state_json" JSONB;

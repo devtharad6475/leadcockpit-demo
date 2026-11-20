@@ -1,0 +1,38 @@
+{
+  "at": "2026-09-26T07:37:52.782Z",
+  "model": "deepseek/deepseek-chat",
+  "projectedUsd": 0.42366467,
+  "table": [
+    {
+      "label": "old-424",
+      "seconds": 355,
+      "questionsAsked": 424,
+      "answered": 397,
+      "conflicts": 19,
+      "factsGraded": 80,
+      "factsFound": 61,
+      "notGradeable": 37,
+      "outputChars": 149487,
+      "model": "{\"provider\":\"deepseek\",\"modelName\":\"deepseek-chat\",\"slotId\":\"daily_workhorse\",\"mode\":\"real\",\"fallbackUsed\":false,\"runId\":\"agent_37755ebf-501b-40dd-b7dd-84fe8225e314\"}"
+    },
+    {
+      "label": "checklist",
+      "seconds": 197,
+      "questionsAsked": 195,
+      "answered": 177,
+      "conflicts": 20,
+      "factsGraded": 80,
+      "factsFound": 61,
+      "notGradeable": 37,
+      "outputChars": 66157,
+      "model": "{\"provider\":\"deepseek\",\"modelName\":\"deepseek-chat\",\"slotId\":\"daily_workhorse\",\"mode\":\"real\",\"fallbackUsed\":false,\"runId\":\"agent_8ee858d4-8d5d-4d13-8909-845763faa0fa\"}"
+    }
+  ],
+  "onlyOld": [
+    "GT-MOQ-4"
+  ],
+  "onlyNew": [
+    "GT-MET-1"
+  ],
+  "verdict": "PASS — the checklist finds at least as many facts"
+}

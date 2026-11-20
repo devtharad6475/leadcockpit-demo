@@ -1,0 +1,77 @@
+import { assertDisposableReadinessDatabase } from './golden/_helpers/disposable-readiness-database';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { prisma } from '@/lib/prisma';
+import { repositories as repos } from '@/repositories';
+import { signup } from '@/services/SignupService';
+import { createInvite, acceptInvite } from '@/services/InviteService';
+import { createTicketFromInbound, changeTicketStatus } from '@/services/TicketService';
+import { saveTicketClosureDraft } from '@/services/TicketClosureService';
+import { saveMediaCatalogItem, readMediaCatalogFile } from '@/services/MediaCatalogService';
+import { verifyPassword } from '@/lib/password';
+
+assertDisposableReadinessDatabase(process.env.DATABASE_URL, process.env.CI);
+const file = path.join(process.env.PILOT_PROOF_DIR!, 'fixture-identities.json');
+const password = 'Synthetic-pilot-recovery-password-2026!';
+async function main() {
+  if (process.argv[2] === 'seed') {
+    const owner = await signup({ email: 'pilot-owner@example.invalid', password, name: 'Pilot owner', businessName: 'Pilot cartons' });
+    const foreign = await signup({ email: 'pilot-foreign@example.invalid', password, name: 'Other owner', businessName: 'Other company' });
+    const workspaceId = owner.user.workspaceId;
+    const invite = await createInvite({ workspaceId, invitedByUserId: owner.user.id, inviteeEmail: 'pilot-employee@example.invalid', role: 'sales_member' });
+    assert.equal(invite.emailSent, false, 'Isolated proof must never deliver external mail');
+    const accepted = await acceptInvite({ rawToken: invite.rawToken, name: 'Pilot employee', password });
+    const employee = accepted.user;
+    const started = Date.now();
+    const leads = await Promise.all(Array.from({ length: 30 }, (_, i) => repos.lead.createLead({ workspaceId, companyName: `Concurrent customer ${i}`, status: 'approved' })));
+    assert.equal(new Set(leads.map(row => row.id)).size, 30);
+    assert.equal((await repos.lead.listLeads(workspaceId)).length, 30);
+    const tickets = await Promise.all(leads.slice(0, 12).map((lead, i) => createTicketFromInbound({ workspaceId, leadId: lead.id, sourceChannel: 'manual', type: 'complaint', priority: 'high', subject: `Sample complaint ${i}`, description: 'Sample arrived damaged; owner review required.' }, repos)));
+    assert.equal(new Set(tickets.map(row => row.ticketNumber)).size, 12, 'Simultaneous support cases must have unique ticket numbers');
+    for (let i = 0; i < tickets.length; i++) assert.equal(tickets[i].leadId, leads[i].id);
+    assert.equal((await repos.lead.listLeads(foreign.user.workspaceId)).length, 0);
+    assert.equal(await repos.lead.getLeadById(foreign.user.workspaceId, leads[0].id), undefined);
+    console.log(`PASS 30 concurrent customer saves +12 support cases, exact counts, unique numbers and company privacy (${Date.now()-started}ms)`);
+    await prisma.interaction.create({ data: { workspaceId, leadId: leads[0].id, role: 'customer', channel: 'manual', content: 'Please replace my damaged sample.', updatedAt: new Date() } });
+    await changeTicketStatus(workspaceId, tickets[0].id, 'resolved', { actorType: 'owner', userId: owner.user.id, note: 'Replacement approved by owner; no delivery promise sent.' }, repos);
+    const drafts = await Promise.all(Array.from({ length: 6 }, () => saveTicketClosureDraft(workspaceId, tickets[0].id, { body: 'Your issue has been reviewed. Our team will confirm the next step.', actorUserId: owner.user.id }, repos)));
+    assert.equal(new Set(drafts.map(row => row.draft.id)).size, 1, 'Simultaneous closure clicks must retain one unsent draft');
+    console.log('PASS six simultaneous closure-draft requests create one draft, no sender called');
+    const bytes = Buffer.from('Synthetic catalogue — exact durable file bytes\n', 'utf8');
+    const media = await saveMediaCatalogItem({ workspaceId, leadId: leads[0].id, fileName: 'pilot-catalogue.txt', fileType: 'text/plain', buffer: bytes }, repos);
+    fs.writeFileSync(file, JSON.stringify({ workspaceId, foreignWorkspaceId: foreign.user.workspaceId, ownerId: owner.user.id, employeeId: employee.id, leadId: leads[0].id, ticketId: tickets[0].id, draftId: drafts[0].draft.id, mediaId: media.id }));
+  } else {
+    assert.equal(process.argv[2], 'verify');
+    const ids = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const lead = await repos.lead.getLeadById(ids.workspaceId, ids.leadId);
+    assert.equal(lead?.companyName, 'Concurrent customer 0');
+    assert.equal((await repos.lead.listLeads(ids.workspaceId)).length, 30);
+    assert.equal(await repos.lead.getLeadById(ids.foreignWorkspaceId, ids.leadId), undefined);
+    const employee = await prisma.workspaceMember.findFirst({ where: { workspaceId: ids.workspaceId, userId: ids.employeeId } });
+    assert.equal(employee?.role, 'sales_member'); assert.equal(employee?.status, 'active');
+    const credential = await prisma.userCredential.findFirst({ where: { userId: ids.ownerId } });
+    assert.equal(await verifyPassword(password, credential?.passwordHash), true);
+    const staffCredential = await prisma.userCredential.findFirst({ where: { userId: ids.employeeId } });
+    assert.equal(await verifyPassword(password, staffCredential?.passwordHash), true);
+    const acceptedInvite = await prisma.invite.findFirst({ where: { workspaceId: ids.workspaceId, email: 'pilot-employee@example.invalid' } });
+    assert.equal(acceptedInvite?.status, 'accepted');
+    const chat = await prisma.interaction.findFirst({ where: { workspaceId: ids.workspaceId, leadId: ids.leadId } });
+    assert.equal(chat?.content, 'Please replace my damaged sample.');
+    const ticket = await repos.ticket.getById(ids.workspaceId, ids.ticketId);
+    assert.equal(ticket?.status, 'resolved');
+    const events = await repos.ticketEvent.listByTicket(ids.workspaceId, ids.ticketId);
+    const outcome = events.find(event => event.eventType === 'resolved');
+    assert.equal(outcome?.note, 'Replacement approved by owner; no delivery promise sent.');
+    assert.equal(outcome?.actorUserId, ids.ownerId);
+    const draft = await repos.autoReplyLog.getById(ids.workspaceId, ids.draftId);
+    assert.equal(draft?.status, 'held_for_review');
+    assert.equal(draft?.sendAttempted, false);
+    assert.equal(draft?.sendStatus, 'not_attempted');
+    const media = await readMediaCatalogFile(ids.workspaceId, ids.mediaId, repos);
+    assert.deepEqual(media?.bytes, Buffer.from('Synthetic catalogue — exact durable file bytes\n', 'utf8'));
+    assert.equal(await readMediaCatalogFile(ids.foreignWorkspaceId, ids.mediaId, repos), undefined);
+    console.log('PASS restored customer values, staff access, password verification, chat, resolved ticket, held draft and exact file bytes; foreign access refused');
+  }
+}
+main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => prisma.$disconnect());

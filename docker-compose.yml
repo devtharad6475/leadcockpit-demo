@@ -1,0 +1,125 @@
+# Stage D.3 — Production orchestration: one image, four services.
+#
+# Architecture:
+#                          ┌──────────────┐
+#        Internet ───────► │    caddy     │  ◄── ports 80 + 443 (host)
+#                          │  auto-HTTPS  │      auto Let's Encrypt cert
+#                          └──────┬───────┘
+#                                 │ reverse_proxy web:3000
+#                                 ▼
+#                          ┌──────────────┐
+#                          │     web      │  ◄── Next.js standalone server
+#                          │ node server  │      listens on $PORT (3000)
+#                          │     .js      │
+#                          └──────────────┘
+#
+#   (parallel, same image, different commands)
+#                          ┌──────────────┐         ┌──────────────┐
+#                          │   worker     │         │  scheduler   │
+#                          │ npm worker   │         │ cron loop    │
+#                          │ (BullMQ)     │         │ (daily)      │
+#                          └──────────────┘         └──────────────┘
+#
+# State is EXTERNAL to this compose stack:
+#   - Postgres: Neon (DATABASE_URL in .env)
+#   - Redis:    Upstash (REDIS_URL in .env)
+# So there are no postgres/redis services here. Keeping state external
+# matches the locked decisions (managed Postgres Q17; Upstash Redis D-2026-
+# 07-27-1).
+#
+# Image source: the operator's GHCR image, built by .github/workflows/deploy.yml.
+# Override `image:` below to match your GHCR path. For local builds, change
+# `image:` to `build: .` (compose will then build from the Dockerfile).
+#
+# Locked decisions (D-2026-07-27-2): one image, three app roles + Caddy.
+
+services:
+  web:
+    # Production: pull the pre-built image from GHCR.
+    # Local dev: replace these two lines with `build: .`
+    image: ghcr.io/${GHCR_OWNER:-leadgen}/leadgen-platform:${IMAGE_TAG:-latest}
+    pull_policy: always
+    command: ["node", "server.js"]
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+      - PORT=${PORT:-3000}
+    restart: unless-stopped
+    networks:
+      - leadgen-net
+    # Web does NOT expose ports to the host — only Caddy does. Caddy
+    # proxies to web:3000 over the internal network.
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  worker:
+    # Same image as web; different command. The BullMQ worker pulls jobs off
+    # Redis (REDIS_URL) and dispatches to the handler map.
+    image: ghcr.io/${GHCR_OWNER:-leadgen}/leadgen-platform:${IMAGE_TAG:-latest}
+    pull_policy: always
+    command: ["npx", "tsx", "scripts/worker-entrypoint.ts"]
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - leadgen-net
+    # Worker is a no-op without REDIS_URL — it logs a warning and exits 0
+    # (see scripts/worker-entrypoint.ts). compose's `restart: unless-stopped`
+    # would then keep restarting it; if you don't want that, set REDIS_URL
+    # OR comment this service out until you have Redis provisioned.
+    depends_on:
+      - web
+
+  scheduler:
+    # Same image; runs the daily scheduler. The `while true; sleep 86400`
+    # loop is a deliberate poor-man's cron — it keeps the container alive
+    # and runs the scheduler once per day. This is documented as a known
+    # limitation in docs/STAGE_D_DEPLOYMENT_RUNBOOK.md; a proper cron
+    # container or host-cron is a Stage 5+ concern.
+    image: ghcr.io/${GHCR_OWNER:-leadgen}/leadgen-platform:${IMAGE_TAG:-latest}
+    pull_policy: always
+    command: ["sh", "-c", "while true; do npx tsx scripts/scheduler-entrypoint.ts; echo '[scheduler] sleeping 24h until next run...'; sleep 86400; done"]
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - leadgen-net
+    depends_on:
+      - web
+
+  caddy:
+    # Caddy 2 official Alpine image. Auto-HTTPS via Let's Encrypt.
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"   # HTTP — Caddy redirects to HTTPS + serves ACME challenge
+      - "443:443" # HTTPS — terminates TLS, proxies to web
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data        # cert storage (persisted across restarts)
+      - caddy_config:/config
+    environment:
+      # Caddyfile uses {$BASE_URL} for the site block — passes the env var
+      # through. Set BASE_URL=leadcockpit.example.com in .env.
+      - BASE_URL=${BASE_URL:?BASE_URL must be set in .env}
+    networks:
+      - leadgen-net
+    depends_on:
+      - web
+
+networks:
+  leadgen-net:
+    driver: bridge
+
+volumes:
+  caddy_data:    # Caddy cert + state — persisted.
+  caddy_config:  # Caddy runtime config — persisted.
